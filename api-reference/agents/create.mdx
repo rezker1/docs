@@ -1,0 +1,177 @@
+---
+title: "Create Agent"
+api: "POST /agents"
+description: "Create a new verified AI agent with Zero-Knowledge capabilities"
+---
+
+## Request
+
+<ParamField body="name" type="string" required>
+  A unique name for your agent
+</ParamField>
+
+<ParamField body="description" type="string">
+  A description of what your agent does
+</ParamField>
+
+<ParamField body="capabilities" type="array" required>
+  List of capabilities for the agent. Available options:
+  - `text-generation`
+  - `data-analysis`
+  - `code-generation`
+  - `image-processing`
+  - `voice-synthesis`
+</ParamField>
+
+<ParamField body="zkConfig" type="object" required>
+  Zero-Knowledge configuration for the agent
+  
+  <Expandable title="zkConfig properties">
+    <ParamField body="enableProofs" type="boolean" default="true">
+      Enable automatic proof generation for agent actions
+    </ParamField>
+    
+    <ParamField body="preservePrivacy" type="boolean" default="true">
+      Ensure private data is never exposed in proofs
+    </ParamField>
+    
+    <ParamField body="proofType" type="string" default="zk-SNARK">
+      Type of Zero-Knowledge proof to use. Options: `zk-SNARK`, `zk-STARK`
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Additional metadata for the agent
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.treeship.dev/v1/agents \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "DataAnalyzer",
+    "description": "Analyzes sensitive data while preserving privacy",
+    "capabilities": ["data-analysis", "text-generation"],
+    "zkConfig": {
+      "enableProofs": true,
+      "preservePrivacy": true,
+      "proofType": "zk-SNARK"
+    },
+    "metadata": {
+      "department": "research",
+      "compliance": "GDPR"
+    }
+  }'
+```
+
+```javascript JavaScript
+const agent = await treeship.agents.create({
+  name: "DataAnalyzer",
+  description: "Analyzes sensitive data while preserving privacy",
+  capabilities: ["data-analysis", "text-generation"],
+  zkConfig: {
+    enableProofs: true,
+    preservePrivacy: true,
+    proofType: "zk-SNARK"
+  },
+  metadata: {
+    department: "research",
+    compliance: "GDPR"
+  }
+});
+```
+
+```python Python
+agent = treeship.agents.create(
+    name="DataAnalyzer",
+    description="Analyzes sensitive data while preserving privacy",
+    capabilities=["data-analysis", "text-generation"],
+    zk_config={
+        "enable_proofs": True,
+        "preserve_privacy": True,
+        "proof_type": "zk-SNARK"
+    },
+    metadata={
+        "department": "research",
+        "compliance": "GDPR"
+    }
+)
+```
+</RequestExample>
+
+## Response
+
+<ResponseField name="id" type="string">
+  Unique identifier for the agent
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The agent's name
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  The agent's description
+</ResponseField>
+
+<ResponseField name="capabilities" type="array">
+  List of enabled capabilities
+</ResponseField>
+
+<ResponseField name="zkConfig" type="object">
+  Zero-Knowledge configuration
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current status of the agent. Possible values: `active`, `pending`, `suspended`
+</ResponseField>
+
+<ResponseField name="verificationHash" type="string">
+  Cryptographic hash for agent verification
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of creation
+</ResponseField>
+
+<ResponseField name="updatedAt" type="string">
+  ISO 8601 timestamp of last update
+</ResponseField>
+
+<ResponseExample>
+```json Success Response
+{
+  "id": "agent_1234567890",
+  "name": "DataAnalyzer",
+  "description": "Analyzes sensitive data while preserving privacy",
+  "capabilities": ["data-analysis", "text-generation"],
+  "zkConfig": {
+    "enableProofs": true,
+    "preservePrivacy": true,
+    "proofType": "zk-SNARK"
+  },
+  "status": "active",
+  "verificationHash": "0x7d8f9e8a7b6c5d4e3f2a1b0c9d8e7f6a",
+  "metadata": {
+    "department": "research",
+    "compliance": "GDPR"
+  },
+  "createdAt": "2024-01-27T10:30:00.000Z",
+  "updatedAt": "2024-01-27T10:30:00.000Z"
+}
+```
+
+```json Error Response
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Agent name already exists",
+    "details": {
+      "field": "name",
+      "value": "DataAnalyzer"
+    }
+  }
+}
+```
+</ResponseExample>

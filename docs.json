@@ -1,68 +1,68 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Treeship Documentation",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#FFCD38",
+    "light": "#FFE38C",
+    "dark": "#FF4F00"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
               "index",
               "quickstart",
-              "development"
+              "installation"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Zero-Knowledge Proofs",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "zk/introduction",
+              "zk/attestations",
+              "zk/verification"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "ZK Commerce",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "commerce/overview",
+              "commerce/payment-proofs",
+              "commerce/compliance"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "SDK Reference",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "sdk/javascript",
+              "sdk/python",
+              "sdk/examples"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Authentication",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/authentication"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Endpoints",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/agents/create",
+              "api-reference/agents/verify",
+              "api-reference/proofs/generate",
+              "api-reference/attestations/create"
             ]
           }
         ]
@@ -71,19 +71,19 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Website",
+          "href": "https://www.treeship.dev",
+          "icon": "globe"
         },
         {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
+          "anchor": "GitHub",
+          "href": "https://github.com/treeship",
+          "icon": "github"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Discord",
+          "href": "https://discord.gg/treeship",
+          "icon": "discord"
         }
       ]
     }
@@ -96,20 +96,32 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@treeship.dev"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Get Started",
+      "href": "https://www.treeship.dev"
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/treeship",
+      "github": "https://github.com/treeship",
+      "linkedin": "https://linkedin.com/company/treeship"
+    }
+  },
+  "api": {
+    "baseUrl": "https://api.treeship.dev/v1",
+    "mdx": {
+      "auth": {
+        "method": "bearer",
+        "name": "Authorization"
+      }
+    },
+    "playground": {
+      "mode": "simple"
     }
   }
 }

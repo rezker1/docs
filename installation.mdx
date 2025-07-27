@@ -1,0 +1,279 @@
+---
+title: "Installation"
+description: "Install and configure the Treeship SDK for your project"
+---
+
+## System Requirements
+
+Before installing Treeship, ensure your environment meets these requirements:
+
+- **Node.js**: Version 16.0 or higher (for JavaScript/TypeScript)
+- **Python**: Version 3.8 or higher (for Python SDK)
+- **Operating System**: macOS, Linux, or Windows
+- **Memory**: Minimum 4GB RAM for proof generation
+
+## JavaScript/TypeScript Installation
+
+### Using npm
+
+```bash
+npm install @treeship/sdk
+```
+
+### Using yarn
+
+```bash
+yarn add @treeship/sdk
+```
+
+### Using pnpm
+
+```bash
+pnpm add @treeship/sdk
+```
+
+## Python Installation
+
+### Using pip
+
+```bash
+pip install treeship-sdk
+```
+
+### Using poetry
+
+```bash
+poetry add treeship-sdk
+```
+
+## Configuration
+
+### 1. Get Your API Key
+
+Sign up at [treeship.dev](https://www.treeship.dev) and generate an API key from your dashboard.
+
+### 2. Set Environment Variables
+
+Create a `.env` file in your project root:
+
+```bash
+# .env
+TREESHIP_API_KEY=your_api_key_here
+TREESHIP_ENVIRONMENT=production  # or "sandbox" for testing
+```
+
+<Warning>
+  Never commit your `.env` file to version control. Add it to your `.gitignore`:
+  ```bash
+  echo ".env" >> .gitignore
+  ```
+</Warning>
+
+### 3. Initialize the SDK
+
+<CodeGroup>
+```javascript JavaScript/TypeScript
+import { Treeship } from '@treeship/sdk';
+
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY,
+  environment: process.env.TREESHIP_ENVIRONMENT || 'production'
+});
+
+// Test your connection
+try {
+  const status = await treeship.health.check();
+  console.log('Connected to Treeship:', status);
+} catch (error) {
+  console.error('Connection failed:', error);
+}
+```
+
+```python Python
+import os
+from treeship import Treeship
+
+treeship = Treeship(
+    api_key=os.environ.get("TREESHIP_API_KEY"),
+    environment=os.environ.get("TREESHIP_ENVIRONMENT", "production")
+)
+
+# Test your connection
+try:
+    status = treeship.health.check()
+    print(f"Connected to Treeship: {status}")
+except Exception as error:
+    print(f"Connection failed: {error}")
+```
+</CodeGroup>
+
+## Advanced Configuration
+
+### Custom API Endpoint
+
+For enterprise or self-hosted deployments:
+
+<CodeGroup>
+```javascript JavaScript
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY,
+  baseUrl: 'https://api.your-domain.com/v1',
+  timeout: 30000, // 30 seconds
+  retries: 3
+});
+```
+
+```python Python
+treeship = Treeship(
+    api_key=os.environ.get("TREESHIP_API_KEY"),
+    base_url="https://api.your-domain.com/v1",
+    timeout=30,  # 30 seconds
+    max_retries=3
+)
+```
+</CodeGroup>
+
+### Proxy Configuration
+
+If you're behind a corporate proxy:
+
+<CodeGroup>
+```javascript JavaScript
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY,
+  httpAgent: new HttpsProxyAgent('http://proxy.company.com:8080')
+});
+```
+
+```python Python
+import requests
+
+proxies = {
+    'http': 'http://proxy.company.com:8080',
+    'https': 'http://proxy.company.com:8080'
+}
+
+treeship = Treeship(
+    api_key=os.environ.get("TREESHIP_API_KEY"),
+    proxies=proxies
+)
+```
+</CodeGroup>
+
+## Verify Installation
+
+Run this test script to verify everything is working:
+
+<CodeGroup>
+```javascript verify.js
+const { Treeship } = require('@treeship/sdk');
+
+async function verifyInstallation() {
+  try {
+    const treeship = new Treeship({
+      apiKey: process.env.TREESHIP_API_KEY
+    });
+    
+    // Check API connection
+    const health = await treeship.health.check();
+    console.log('✅ API Connection:', health.status);
+    
+    // Check ZK proof generation capability
+    const zkTest = await treeship.proofs.test();
+    console.log('✅ ZK Proof Generation:', zkTest.status);
+    
+    console.log('\n🎉 Treeship SDK installed successfully!');
+  } catch (error) {
+    console.error('❌ Installation verification failed:', error.message);
+  }
+}
+
+verifyInstallation();
+```
+
+```python verify.py
+import os
+from treeship import Treeship
+
+def verify_installation():
+    try:
+        treeship = Treeship(
+            api_key=os.environ.get("TREESHIP_API_KEY")
+        )
+        
+        # Check API connection
+        health = treeship.health.check()
+        print(f"✅ API Connection: {health['status']}")
+        
+        # Check ZK proof generation capability
+        zk_test = treeship.proofs.test()
+        print(f"✅ ZK Proof Generation: {zk_test['status']}")
+        
+        print("\n🎉 Treeship SDK installed successfully!")
+    except Exception as error:
+        print(f"❌ Installation verification failed: {error}")
+
+if __name__ == "__main__":
+    verify_installation()
+```
+</CodeGroup>
+
+## Troubleshooting
+
+### Common Issues
+
+<AccordionGroup>
+  <Accordion title="Module not found error">
+    Ensure you've installed the SDK in the correct directory:
+    ```bash
+    # Check if you're in the right directory
+    pwd
+    
+    # List installed packages
+    npm list @treeship/sdk
+    ```
+  </Accordion>
+  
+  <Accordion title="Authentication failed">
+    Verify your API key:
+    ```bash
+    # Check if environment variable is set
+    echo $TREESHIP_API_KEY
+    
+    # Make sure .env is loaded (for Node.js)
+    npm install dotenv
+    ```
+    
+    Then add to your code:
+    ```javascript
+    require('dotenv').config();
+    ```
+  </Accordion>
+  
+  <Accordion title="Connection timeout">
+    Check your network connection and firewall settings:
+    ```bash
+    # Test API endpoint
+    curl -I https://api.treeship.dev/v1/health
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start Tutorial"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Create your first verified AI agent
+  </Card>
+  <Card
+    title="SDK Examples"
+    icon="code"
+    href="/sdk/examples"
+  >
+    Explore practical implementation patterns
+  </Card>
+</CardGroup>

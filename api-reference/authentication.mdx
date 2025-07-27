@@ -1,0 +1,124 @@
+---
+title: "Authentication"
+description: "Learn how to authenticate with the Treeship API"
+authMethod: "bearer"
+---
+
+## Overview
+
+The Treeship API uses Bearer token authentication to secure all API endpoints. You'll need an API key to make authenticated requests.
+
+## Getting your API key
+
+1. Sign up at [treeship.dev](https://www.treeship.dev)
+2. Navigate to your dashboard
+3. Generate an API key from the API Keys section
+4. Store your API key securely
+
+<Warning>
+  Never share your API key or commit it to version control. Use environment variables to store sensitive credentials.
+</Warning>
+
+## Authentication methods
+
+### Bearer Token (Recommended)
+
+Include your API key in the Authorization header as a Bearer token:
+
+```bash
+curl -X GET https://api.treeship.dev/v1/agents \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### JavaScript SDK
+
+When using our JavaScript SDK, provide your API key during initialization:
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY
+});
+```
+
+### Python SDK
+
+For Python applications, initialize the SDK with your API key:
+
+```python
+from treeship import Treeship
+
+treeship = Treeship(
+    api_key=os.environ.get("TREESHIP_API_KEY")
+)
+```
+
+## Environment variables
+
+We recommend storing your API key in environment variables:
+
+```bash
+# .env file
+TREESHIP_API_KEY=your_api_key_here
+```
+
+<Note>
+  Make sure to add `.env` to your `.gitignore` file to prevent accidentally committing your API key.
+</Note>
+
+## Rate limits
+
+API requests are rate limited to ensure fair usage:
+
+- **Free tier**: 100 requests per minute
+- **Pro tier**: 1,000 requests per minute
+- **Enterprise**: Custom limits
+
+Rate limit information is included in response headers:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1640995200
+```
+
+## Error responses
+
+Authentication errors return a 401 status code:
+
+```json
+{
+  "error": {
+    "code": "authentication_required",
+    "message": "Missing or invalid API key"
+  }
+}
+```
+
+## Security best practices
+
+1. **Rotate keys regularly**: Generate new API keys periodically
+2. **Use environment variables**: Never hardcode API keys
+3. **Limit key permissions**: Use keys with minimal required permissions
+4. **Monitor usage**: Check your dashboard for unusual activity
+5. **Use HTTPS**: Always make requests over HTTPS
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Create an Agent"
+    icon="robot"
+    href="/api-reference/agents/create"
+  >
+    Learn how to create your first verified AI agent
+  </Card>
+  <Card
+    title="Generate Proofs"
+    icon="shield-check"
+    href="/api-reference/proofs/generate"
+  >
+    Generate Zero-Knowledge proofs for your agents
+  </Card>
+</CardGroup>

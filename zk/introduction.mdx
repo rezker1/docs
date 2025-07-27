@@ -1,0 +1,117 @@
+---
+title: "Introduction to Zero-Knowledge Proofs"
+description: "Understanding Zero-Knowledge proofs and how Treeship uses them for AI agent verification"
+---
+
+## What are Zero-Knowledge Proofs?
+
+Zero-Knowledge proofs (ZK proofs) are cryptographic methods that allow one party (the prover) to prove to another party (the verifier) that a statement is true, without revealing any information beyond the validity of the statement itself.
+
+<Note>
+  Think of it like proving you're over 21 to enter a bar without showing your actual birthdate or any other personal information.
+</Note>
+
+## Why ZK Proofs for AI Agents?
+
+AI agents often process sensitive data and make critical decisions. Zero-Knowledge proofs enable:
+
+1. **Privacy Preservation**: Prove agent performance without exposing training data or proprietary algorithms
+2. **Trust Without Transparency**: Verify agent behavior without revealing internal workings
+3. **Compliance**: Meet regulatory requirements while maintaining confidentiality
+4. **Decentralization**: Enable trustless interactions between autonomous agents
+
+## How Treeship Implements ZK Proofs
+
+<Steps>
+  <Step title="Agent Registration">
+    When you create an agent, Treeship generates a unique cryptographic identity
+  </Step>
+  <Step title="Action Execution">
+    As your agent performs tasks, Treeship creates cryptographic commitments
+  </Step>
+  <Step title="Proof Generation">
+    Zero-Knowledge proofs are generated to verify performance without revealing data
+  </Step>
+  <Step title="Verification">
+    Anyone can verify the proofs using the public verification key
+  </Step>
+</Steps>
+
+## Types of Proofs
+
+### zk-SNARKs
+**Zero-Knowledge Succinct Non-Interactive Arguments of Knowledge**
+
+- ✅ Very small proof size (~200 bytes)
+- ✅ Fast verification time
+- ⚠️ Requires trusted setup
+- 🚀 Best for: High-frequency verification scenarios
+
+### zk-STARKs
+**Zero-Knowledge Scalable Transparent Arguments of Knowledge**
+
+- ✅ No trusted setup required
+- ✅ Post-quantum secure
+- ⚠️ Larger proof size (~45 KB)
+- 🚀 Best for: Maximum security and transparency
+
+## Real-World Example
+
+```javascript
+// Create an AI agent that analyzes medical data
+const medicalAgent = await treeship.agents.create({
+  name: "MedicalAnalyzer",
+  capabilities: ["data-analysis"],
+  zkConfig: {
+    enableProofs: true,
+    preservePrivacy: true,
+    proofType: "zk-SNARK"
+  }
+});
+
+// Analyze patient data without exposing it
+const result = await treeship.agents.execute(medicalAgent.id, {
+  task: "Analyze patient symptoms and suggest diagnosis",
+  data: sensitivePatientData, // Never leaves your environment
+  generateProof: true
+});
+
+// The proof can be shared publicly
+console.log("Proof:", result.proof);
+// Output: { 
+//   proofData: "0x8f7d...", 
+//   publicInputs: { accuracy: 0.97, completeness: true },
+//   verificationKey: "0x2a3b..." 
+// }
+
+// Anyone can verify the analysis was done correctly
+const verification = await treeship.proofs.verify(result.proofId);
+console.log("Verified:", verification.isValid); // true
+```
+
+## Benefits for Different Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Healthcare" icon="hospital">
+    Analyze patient data while maintaining HIPAA compliance
+  </Card>
+  <Card title="Finance" icon="chart-line">
+    Verify trading algorithms without revealing strategies
+  </Card>
+  <Card title="Legal" icon="scale-balanced">
+    Process confidential documents with verifiable outputs
+  </Card>
+  <Card title="Research" icon="flask">
+    Share research findings without exposing raw data
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<Card
+  title="Create Your First Attestation"
+  icon="certificate"
+  href="/zk/attestations"
+>
+  Learn how to create verifiable credentials for your AI agents
+</Card>
