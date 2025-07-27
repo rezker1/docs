@@ -1,0 +1,675 @@
+---
+title: "Create Attestation"
+api: "POST /attestations"
+description: "Create verifiable attestations for AI agents using Zero-Knowledge proofs"
+---
+
+## Request
+
+<ParamField body="type" type="string" required>
+  Type of attestation to create. Options:
+  - `capability` - Attest to agent capabilities
+  - `performance` - Attest to performance metrics
+  - `compliance` - Attest to regulatory compliance
+  - `identity` - Attest to agent identity
+  - `execution` - Attest to successful execution
+  - `credential` - General verifiable credential
+</ParamField>
+
+<ParamField body="subject" type="object" required>
+  The entity being attested to
+  
+  <Expandable title="subject properties">
+    <ParamField body="id" type="string" required>
+      Unique identifier of the subject (e.g., agent ID)
+    </ParamField>
+    
+    <ParamField body="type" type="string" required>
+      Type of subject: `agent`, `user`, `organization`, `system`
+    </ParamField>
+    
+    <ParamField body="metadata" type="object">
+      Additional metadata about the subject
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="claims" type="array" required>
+  List of claims being attested to
+  ```json
+  [
+    {
+      "property": "accuracy",
+      "value": 0.97,
+      "operator": ">=",
+      "threshold": 0.95
+    },
+    {
+      "property": "compliance",
+      "value": "GDPR",
+      "operator": "includes"
+    }
+  ]
+  ```
+</ParamField>
+
+<ParamField body="evidence" type="object" required>
+  Evidence supporting the attestation
+  
+  <Expandable title="evidence properties">
+    <ParamField body="proofs" type="array">
+      Array of proof IDs that support this attestation
+    </ParamField>
+    
+    <ParamField body="documents" type="array">
+      Supporting documents (hashed for privacy)
+    </ParamField>
+    
+    <ParamField body="witnesses" type="array">
+      Third-party witnesses or oracles
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="issuer" type="object" required>
+  Information about the attestation issuer
+  
+  <Expandable title="issuer properties">
+    <ParamField body="id" type="string" required>
+      Issuer identifier
+    </ParamField>
+    
+    <ParamField body="type" type="string" required>
+      Issuer type: `agent`, `organization`, `oracle`, `system`
+    </ParamField>
+    
+    <ParamField body="credentials" type="array">
+      Issuer's own credentials/attestations
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="validityPeriod" type="object">
+  Validity period for the attestation
+  
+  <Expandable title="validityPeriod properties">
+    <ParamField body="from" type="string">
+      ISO 8601 start date (defaults to now)
+    </ParamField>
+    
+    <ParamField body="to" type="string">
+      ISO 8601 end date (optional)
+    </ParamField>
+    
+    <ParamField body="duration" type="string">
+      Duration string (e.g., "30d", "1y") - alternative to "to"
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="privacy" type="object">
+  Privacy settings for the attestation
+  
+  <Expandable title="privacy properties">
+    <ParamField body="selective_disclosure" type="boolean" default="false">
+      Enable selective disclosure of claims
+    </ParamField>
+    
+    <ParamField body="hide_evidence" type="boolean" default="true">
+      Hide evidence details while maintaining verifiability
+    </ParamField>
+    
+    <ParamField body="zero_knowledge" type="boolean" default="true">
+      Use zero-knowledge proofs for claims
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.treeship.dev/v1/attestations \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "performance",
+    "subject": {
+      "id": "agent_ml_001",
+      "type": "agent",
+      "metadata": {
+        "name": "Medical Diagnosis AI",
+        "version": "2.1.0"
+      }
+    },
+    "claims": [
+      {
+        "property": "diagnostic_accuracy",
+        "value": 0.97,
+        "operator": ">=",
+        "threshold": 0.95
+      },
+      {
+        "property": "false_positive_rate",
+        "value": 0.02,
+        "operator": "<=",
+        "threshold": 0.05
+      }
+    ],
+    "evidence": {
+      "proofs": ["proof_abc123", "proof_def456"],
+      "documents": [
+        {
+          "type": "test_results",
+          "hash": "0x7d8f9e8a..."
+        }
+      ]
+    },
+    "issuer": {
+      "id": "healthcare_org_001",
+      "type": "organization",
+      "credentials": ["cert_fda_510k"]
+    },
+    "validityPeriod": {
+      "duration": "1y"
+    },
+    "privacy": {
+      "selective_disclosure": true,
+      "zero_knowledge": true
+    }
+  }'
+```
+
+```javascript JavaScript
+const attestation = await treeship.attestations.create({
+  type: 'performance',
+  
+  subject: {
+    id: 'agent_ml_001',
+    type: 'agent',
+    metadata: {
+      name: 'Medical Diagnosis AI',
+      version: '2.1.0'
+    }
+  },
+  
+  claims: [
+    {
+      property: 'diagnostic_accuracy',
+      value: 0.97,
+      operator: '>=',
+      threshold: 0.95
+    },
+    {
+      property: 'false_positive_rate',
+      value: 0.02,
+      operator: '<=',
+      threshold: 0.05
+    }
+  ],
+  
+  evidence: {
+    proofs: ['proof_abc123', 'proof_def456'],
+    documents: [
+      {
+        type: 'test_results',
+        hash: '0x7d8f9e8a...'
+      }
+    ]
+  },
+  
+  issuer: {
+    id: 'healthcare_org_001',
+    type: 'organization',
+    credentials: ['cert_fda_510k']
+  },
+  
+  validityPeriod: {
+    duration: '1y'
+  },
+  
+  privacy: {
+    selective_disclosure: true,
+    zero_knowledge: true
+  }
+});
+```
+
+```python Python
+attestation = treeship.attestations.create(
+    type='performance',
+    
+    subject={
+        'id': 'agent_ml_001',
+        'type': 'agent',
+        'metadata': {
+            'name': 'Medical Diagnosis AI',
+            'version': '2.1.0'
+        }
+    },
+    
+    claims=[
+        {
+            'property': 'diagnostic_accuracy',
+            'value': 0.97,
+            'operator': '>=',
+            'threshold': 0.95
+        },
+        {
+            'property': 'false_positive_rate',
+            'value': 0.02,
+            'operator': '<=',
+            'threshold': 0.05
+        }
+    ],
+    
+    evidence={
+        'proofs': ['proof_abc123', 'proof_def456'],
+        'documents': [
+            {
+                'type': 'test_results',
+                'hash': '0x7d8f9e8a...'
+            }
+        ]
+    },
+    
+    issuer={
+        'id': 'healthcare_org_001',
+        'type': 'organization',
+        'credentials': ['cert_fda_510k']
+    },
+    
+    validity_period={
+        'duration': '1y'
+    },
+    
+    privacy={
+        'selective_disclosure': True,
+        'zero_knowledge': True
+    }
+)
+```
+</RequestExample>
+
+## Response
+
+<ResponseField name="attestationId" type="string">
+  Unique identifier for the created attestation
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Type of attestation created
+</ResponseField>
+
+<ResponseField name="subject" type="object">
+  Information about the attested subject
+</ResponseField>
+
+<ResponseField name="claims" type="array">
+  List of verified claims in the attestation
+</ResponseField>
+
+<ResponseField name="issuer" type="object">
+  Information about the attestation issuer
+</ResponseField>
+
+<ResponseField name="signature" type="object">
+  Cryptographic signature of the attestation
+  
+  <Expandable title="signature properties">
+    <ResponseField name="algorithm" type="string">
+      Signature algorithm used
+    </ResponseField>
+    
+    <ResponseField name="value" type="string">
+      Base64 encoded signature
+    </ResponseField>
+    
+    <ResponseField name="publicKey" type="string">
+      Public key for signature verification
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="proof" type="object">
+  Zero-Knowledge proof supporting the attestation (if privacy enabled)
+  
+  <Expandable title="proof properties">
+    <ResponseField name="type" type="string">
+      Type of ZK proof (zk-SNARK or zk-STARK)
+    </ResponseField>
+    
+    <ResponseField name="data" type="string">
+      Encoded proof data
+    </ResponseField>
+    
+    <ResponseField name="verificationKey" type="string">
+      Public verification key
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="validFrom" type="string">
+  ISO 8601 timestamp when attestation becomes valid
+</ResponseField>
+
+<ResponseField name="validTo" type="string">
+  ISO 8601 timestamp when attestation expires (if applicable)
+</ResponseField>
+
+<ResponseField name="revocable" type="boolean">
+  Whether the attestation can be revoked
+</ResponseField>
+
+<ResponseField name="verificationUrl" type="string">
+  URL for public verification of the attestation
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of creation
+</ResponseField>
+
+<ResponseExample>
+```json Success Response
+{
+  "attestationId": "attest_7d8f9e8a7b6c5d4e",
+  "type": "performance",
+  "subject": {
+    "id": "agent_ml_001",
+    "type": "agent",
+    "metadata": {
+      "name": "Medical Diagnosis AI",
+      "version": "2.1.0"
+    }
+  },
+  "claims": [
+    {
+      "property": "diagnostic_accuracy",
+      "value": 0.97,
+      "operator": ">=",
+      "threshold": 0.95,
+      "verified": true
+    },
+    {
+      "property": "false_positive_rate",
+      "value": 0.02,
+      "operator": "<=",
+      "threshold": 0.05,
+      "verified": true
+    }
+  ],
+  "issuer": {
+    "id": "healthcare_org_001",
+    "type": "organization",
+    "credentials": ["cert_fda_510k"],
+    "verified": true
+  },
+  "signature": {
+    "algorithm": "ECDSA_secp256k1",
+    "value": "0x8f9d3a4e5b6c7d8e...",
+    "publicKey": "0x2a3b4c5d6e7f8g9h..."
+  },
+  "proof": {
+    "type": "zk-SNARK",
+    "data": "0x7f8e9d0c1b2a3456...",
+    "verificationKey": "0x9e8d7c6b5a4f3e2d..."
+  },
+  "validFrom": "2024-01-27T12:30:00Z",
+  "validTo": "2025-01-27T12:30:00Z",
+  "revocable": true,
+  "verificationUrl": "https://verify.treeship.dev/attest_7d8f9e8a7b6c5d4e",
+  "createdAt": "2024-01-27T12:30:00Z"
+}
+```
+
+```json Error Response
+{
+  "error": {
+    "code": "invalid_evidence",
+    "message": "Provided proof does not support the claimed performance",
+    "details": {
+      "proofId": "proof_abc123",
+      "expectedClaim": "diagnostic_accuracy >= 0.95",
+      "actualClaim": "diagnostic_accuracy >= 0.90"
+    }
+  }
+}
+```
+</ResponseExample>
+
+## Attestation Types
+
+### Capability Attestation
+Attest to an agent's capabilities:
+
+```javascript
+const capabilityAttestation = await treeship.attestations.create({
+  type: 'capability',
+  subject: { id: 'agent_123', type: 'agent' },
+  claims: [
+    {
+      property: 'natural_language_processing',
+      value: true,
+      evidence_type: 'performance_test'
+    },
+    {
+      property: 'max_context_length',
+      value: 32000,
+      operator: '>=',
+      threshold: 16000
+    }
+  ],
+  evidence: {
+    proofs: ['capability_proof_xyz']
+  }
+});
+```
+
+### Compliance Attestation
+Attest to regulatory compliance:
+
+```javascript
+const complianceAttestation = await treeship.attestations.create({
+  type: 'compliance',
+  subject: { id: 'financial_agent_456', type: 'agent' },
+  claims: [
+    {
+      property: 'gdpr_compliance',
+      value: 'compliant',
+      framework: 'GDPR'
+    },
+    {
+      property: 'data_retention',
+      value: '30_days',
+      policy: 'user_data_retention'
+    }
+  ],
+  evidence: {
+    proofs: ['gdpr_compliance_proof'],
+    documents: [
+      { type: 'audit_report', hash: '0x...' }
+    ]
+  }
+});
+```
+
+### Identity Attestation
+Attest to agent identity and ownership:
+
+```javascript
+const identityAttestation = await treeship.attestations.create({
+  type: 'identity',
+  subject: { id: 'agent_789', type: 'agent' },
+  claims: [
+    {
+      property: 'controlled_by',
+      value: 'organization_001',
+      verification_method: 'cryptographic_signature'
+    },
+    {
+      property: 'created_at',
+      value: '2024-01-01T00:00:00Z',
+      evidence_type: 'blockchain_record'
+    }
+  ]
+});
+```
+
+## Advanced Features
+
+### Composite Attestations
+Create attestations that depend on other attestations:
+
+```javascript
+const compositeAttestation = await treeship.attestations.create({
+  type: 'credential',
+  subject: { id: 'agent_composite', type: 'agent' },
+  dependencies: [
+    'attest_capability_123',
+    'attest_performance_456',
+    'attest_compliance_789'
+  ],
+  claims: [
+    {
+      property: 'qualified_for_production',
+      value: true,
+      logic: 'ALL_DEPENDENCIES_VALID'
+    }
+  ]
+});
+```
+
+### Revocable Attestations
+Create attestations that can be revoked:
+
+```javascript
+const revocableAttestation = await treeship.attestations.create({
+  type: 'performance',
+  // ... other fields
+  revocation: {
+    enabled: true,
+    conditions: [
+      'performance_degradation',
+      'security_incident',
+      'manual_request'
+    ],
+    revocationList: 'https://revocation.treeship.dev/list'
+  }
+});
+
+// Later revoke if needed
+await treeship.attestations.revoke(attestationId, {
+  reason: 'performance_degradation',
+  evidence: 'performance_monitoring_alert_001'
+});
+```
+
+### Batch Attestations
+Create multiple attestations efficiently:
+
+```javascript
+const batchAttestations = await treeship.attestations.createBatch([
+  {
+    type: 'capability',
+    subject: { id: 'agent_001', type: 'agent' },
+    claims: [...]
+  },
+  {
+    type: 'performance',
+    subject: { id: 'agent_002', type: 'agent' },
+    claims: [...]
+  }
+]);
+```
+
+## Verification
+
+Verify attestations publicly:
+
+```javascript
+// Public verification
+const verification = await treeship.attestations.verify(attestationId);
+console.log('Valid:', verification.isValid);
+console.log('Claims verified:', verification.claims);
+
+// Verify with selective disclosure
+const partialVerification = await treeship.attestations.verify(
+  attestationId,
+  {
+    revealClaims: ['diagnostic_accuracy'],
+    hideClaims: ['false_positive_rate']
+  }
+);
+```
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Medical AI Certification">
+    Create attestations for medical AI systems:
+    ```javascript
+    const medicalAttestation = await treeship.attestations.create({
+      type: 'performance',
+      subject: {
+        id: 'diagnostic_ai_001',
+        type: 'agent',
+        metadata: {
+          medical_device_class: 'Class_II',
+          fda_clearance: '510k'
+        }
+      },
+      claims: [
+        {
+          property: 'diagnostic_sensitivity',
+          value: 0.97,
+          operator: '>=',
+          threshold: 0.95,
+          standard: 'FDA_510k'
+        }
+      ],
+      issuer: {
+        id: 'medical_testing_lab_001',
+        type: 'organization',
+        certifications: ['CAP_accredited', 'CLIA_certified']
+      }
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Financial Services Compliance">
+    Attest to financial compliance:
+    ```javascript
+    const financialAttestation = await treeship.attestations.create({
+      type: 'compliance',
+      subject: { id: 'trading_agent_001', type: 'agent' },
+      claims: [
+        {
+          property: 'sox_compliance',
+          value: 'certified',
+          auditor: 'big4_firm_001'
+        },
+        {
+          property: 'risk_controls',
+          value: 'implemented',
+          framework: 'basel_iii'
+        }
+      ],
+      evidence: {
+        proofs: ['sox_audit_proof'],
+        documents: [
+          { type: 'sox_audit_report', hash: '0x...' }
+        ]
+      }
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Verify Attestations" icon="check-shield" href="/api-reference/attestations/verify">
+    Learn how to verify attestations
+  </Card>
+  <Card title="ZK Proofs" icon="lock" href="/zk/introduction">
+    Understand Zero-Knowledge proofs
+  </Card>
+</CardGroup>

@@ -1,0 +1,410 @@
+---
+title: "Attestations"
+description: "Create and verify verifiable credentials for AI agents using Zero-Knowledge proofs"
+---
+
+## Overview
+
+Attestations in Treeship are verifiable credentials that make claims about AI agents, their capabilities, performance, or compliance status. Using Zero-Knowledge proofs, attestations can be verified without revealing the underlying evidence or sensitive data.
+
+<Info>
+  Attestations enable trustless verification of agent properties while preserving privacy.
+</Info>
+
+## What are Attestations?
+
+An attestation is a cryptographically signed statement that:
+- Makes specific claims about an agent or system
+- Includes verifiable evidence supporting those claims  
+- Can be publicly verified without revealing private data
+- Is issued by a trusted authority or self-certified
+
+## Attestation Types
+
+<CardGroup cols={2}>
+  <Card title="Capability Attestations" icon="cog">
+    Verify agent capabilities and functions
+  </Card>
+  <Card title="Performance Attestations" icon="chart-line">
+    Prove performance metrics and benchmarks
+  </Card>
+  <Card title="Compliance Attestations" icon="shield-check">
+    Demonstrate regulatory compliance
+  </Card>
+  <Card title="Identity Attestations" icon="id-card">
+    Establish agent identity and ownership
+  </Card>
+</CardGroup>
+
+## Creating Attestations
+
+### Basic Attestation
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY
+});
+
+// Create a capability attestation
+const attestation = await treeship.attestations.create({
+  type: 'capability',
+  
+  subject: {
+    id: 'agent_nlp_001',
+    type: 'agent',
+    metadata: {
+      name: 'Language Processing Agent',
+      version: '2.1.0'
+    }
+  },
+  
+  claims: [
+    {
+      property: 'natural_language_understanding',
+      value: true,
+      evidence_type: 'benchmark_test'
+    },
+    {
+      property: 'context_length',
+      value: 32000,
+      operator: '>=',
+      threshold: 16000
+    }
+  ],
+  
+  evidence: {
+    proofs: ['capability_test_proof_123'],
+    documents: [
+      {
+        type: 'benchmark_results',
+        hash: '0x7d8f9e8a...'
+      }
+    ]
+  },
+  
+  issuer: {
+    id: 'testing_authority_001',
+    type: 'organization',
+    credentials: ['iso_17025_accredited']
+  }
+});
+
+console.log('Attestation ID:', attestation.attestationId);
+console.log('Verification URL:', attestation.verificationUrl);
+```
+
+### Performance Attestation with ZK Proof
+
+```javascript
+// Create performance attestation with Zero-Knowledge proof
+const performanceAttestation = await treeship.attestations.create({
+  type: 'performance',
+  
+  subject: {
+    id: 'trading_agent_456',
+    type: 'agent'
+  },
+  
+  claims: [
+    {
+      property: 'accuracy',
+      value: 0.97,
+      operator: '>=',
+      threshold: 0.95
+    },
+    {
+      property: 'sharpe_ratio',
+      value: 2.3,
+      operator: '>',
+      threshold: 2.0
+    }
+  ],
+  
+  evidence: {
+    proofs: ['performance_proof_zk_789']
+  },
+  
+  privacy: {
+    zero_knowledge: true,
+    selective_disclosure: true,
+    hide_evidence: true
+  }
+});
+```
+
+## Verifying Attestations
+
+### Public Verification
+
+```javascript
+// Verify any attestation publicly
+const verification = await treeship.attestations.verify(attestationId);
+
+console.log('Valid:', verification.isValid);
+console.log('Claims verified:', verification.claims);
+console.log('Issuer trusted:', verification.issuer.verified);
+```
+
+### Selective Disclosure
+
+```javascript
+// Verify with selective disclosure
+const partialVerification = await treeship.attestations.verify(
+  attestationId,
+  {
+    revealClaims: ['accuracy'],
+    hideClaims: ['sharpe_ratio', 'trading_volume']
+  }
+);
+
+// Only accuracy claim is revealed, others remain private
+console.log('Revealed claims:', partialVerification.revealedClaims);
+```
+
+## Attestation Chains
+
+Build trust through attestation chains:
+
+```javascript
+// Base identity attestation
+const identityAttestation = await treeship.attestations.create({
+  type: 'identity',
+  subject: { id: 'agent_001', type: 'agent' },
+  claims: [
+    {
+      property: 'controlled_by',
+      value: 'trusted_organization_123',
+      verification_method: 'cryptographic_signature'
+    }
+  ]
+});
+
+// Capability attestation that depends on identity
+const capabilityAttestation = await treeship.attestations.create({
+  type: 'capability',
+  subject: { id: 'agent_001', type: 'agent' },
+  dependencies: [identityAttestation.attestationId],
+  claims: [
+    {
+      property: 'authorized_for_trading',
+      value: true,
+      basis: 'verified_identity'
+    }
+  ]
+});
+
+// Performance attestation that depends on both
+const performanceAttestation = await treeship.attestations.create({
+  type: 'performance',
+  subject: { id: 'agent_001', type: 'agent' },
+  dependencies: [
+    identityAttestation.attestationId,
+    capabilityAttestation.attestationId
+  ],
+  claims: [
+    {
+      property: 'qualified_for_production',
+      value: true,
+      logic: 'ALL_DEPENDENCIES_VALID'
+    }
+  ]
+});
+```
+
+## Revocation
+
+Manage attestation lifecycle:
+
+```javascript
+// Create revocable attestation
+const revocableAttestation = await treeship.attestations.create({
+  type: 'performance',
+  // ... other fields
+  
+  revocation: {
+    enabled: true,
+    conditions: [
+      'performance_degradation',
+      'security_incident',
+      'manual_request'
+    ],
+    revocationList: 'https://revocation.treeship.dev/list'
+  }
+});
+
+// Later revoke if needed
+await treeship.attestations.revoke(revocableAttestation.attestationId, {
+  reason: 'performance_degradation',
+  evidence: 'monitoring_alert_001'
+});
+
+// Check revocation status
+const status = await treeship.attestations.checkRevocation(attestationId);
+console.log('Revoked:', status.isRevoked);
+```
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Medical AI Certification">
+    Attest to medical AI system compliance and performance:
+    ```javascript
+    const medicalAttestation = await treeship.attestations.create({
+      type: 'compliance',
+      subject: {
+        id: 'diagnostic_ai_001',
+        type: 'agent',
+        metadata: {
+          medical_device_class: 'Class_II',
+          fda_clearance: '510k'
+        }
+      },
+      claims: [
+        {
+          property: 'diagnostic_sensitivity',
+          value: 0.97,
+          operator: '>=',
+          threshold: 0.95,
+          standard: 'FDA_510k'
+        },
+        {
+          property: 'hipaa_compliant',
+          value: true,
+          audit_date: '2024-01-15'
+        }
+      ],
+      issuer: {
+        id: 'medical_testing_lab_001',
+        type: 'organization',
+        certifications: ['CAP_accredited', 'CLIA_certified']
+      }
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Financial Services Authorization">
+    Create attestations for financial AI agents:
+    ```javascript
+    const financialAttestation = await treeship.attestations.create({
+      type: 'compliance',
+      subject: { id: 'trading_agent_001', type: 'agent' },
+      claims: [
+        {
+          property: 'sox_compliant',
+          value: true,
+          auditor: 'big4_firm_001',
+          audit_date: '2024-01-01'
+        },
+        {
+          property: 'risk_controls',
+          value: 'implemented',
+          framework: 'basel_iii'
+        }
+      ],
+      evidence: {
+        proofs: ['sox_audit_proof'],
+        documents: [
+          { type: 'sox_audit_report', hash: '0x...' }
+        ]
+      }
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Supply Chain Verification">
+    Verify supply chain participants:
+    ```javascript
+    const supplierAttestation = await treeship.attestations.create({
+      type: 'credential',
+      subject: { id: 'supplier_agent_001', type: 'agent' },
+      claims: [
+        {
+          property: 'iso_9001_certified',
+          value: true,
+          expiry: '2025-12-31'
+        },
+        {
+          property: 'ethical_sourcing',
+          value: true,
+          standard: 'fair_trade'
+        }
+      ]
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<Warning>
+  Always use Zero-Knowledge proofs for sensitive attestations to preserve privacy.
+</Warning>
+
+1. **Issuer Trust**: Only accept attestations from trusted issuers
+2. **Proof Verification**: Always verify ZK proofs before trusting claims
+3. **Revocation Checking**: Check revocation status for critical attestations
+4. **Evidence Validation**: Ensure evidence supports the claims being made
+5. **Selective Disclosure**: Use selective disclosure to minimize data exposure
+
+## Integration Examples
+
+### Pre-Transaction Verification
+
+```javascript
+// Verify agent before high-value transaction
+async function verifyBeforeTransaction(agentId, transactionAmount) {
+  if (transactionAmount > 100000) {
+    const attestations = await treeship.attestations.query({
+      subject: agentId,
+      types: ['performance', 'compliance', 'identity']
+    });
+    
+    for (const attestation of attestations) {
+      const verification = await treeship.attestations.verify(attestation.id);
+      if (!verification.isValid) {
+        throw new Error(`Attestation ${attestation.id} failed verification`);
+      }
+    }
+  }
+  
+  return true;
+}
+```
+
+### Attestation Marketplace
+
+```javascript
+// Query marketplace for specific attestations
+const marketplaceQuery = await treeship.attestations.search({
+  subject_type: 'agent',
+  claims: [
+    'has_capability:image_processing',
+    'performance:accuracy>0.95',
+    'compliance:GDPR'
+  ],
+  issuer_reputation: '>= 0.9',
+  max_age: '30d'
+});
+
+// Purchase or verify attestations
+for (const result of marketplaceQuery.results) {
+  const verification = await treeship.attestations.verify(result.attestationId);
+  if (verification.isValid) {
+    // Use this agent for your task
+    console.log('Found qualified agent:', result.subject.id);
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Create Attestation" icon="plus" href="/api-reference/attestations/create">
+    API reference for creating attestations
+  </Card>
+  <Card title="Zero-Knowledge Verification" icon="lock" href="/zk/verification">
+    Learn about ZK proof verification
+  </Card>
+</CardGroup>

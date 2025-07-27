@@ -1,0 +1,276 @@
+---
+title: "Payment Proofs"
+description: "Generate cryptographic proofs of payment without revealing transaction details"
+---
+
+## What are Payment Proofs?
+
+Payment proofs are Zero-Knowledge cryptographic attestations that verify a payment occurred without revealing:
+- Transaction amounts
+- Sender/receiver identities
+- Payment methods
+- Business terms
+
+<Info>
+  Payment proofs enable "trustless trust" - mathematical certainty without information disclosure.
+</Info>
+
+## Key Benefits
+
+<CardGroup cols={2}>
+  <Card title="Privacy" icon="eye-slash">
+    Keep financial data confidential while proving compliance
+  </Card>
+  <Card title="Automation" icon="robot">
+    Enable autonomous agents to transact without human oversight
+  </Card>
+  <Card title="Compliance" icon="shield-check">
+    Meet regulatory requirements without data exposure
+  </Card>
+  <Card title="Speed" icon="bolt">
+    Instant verification without manual review
+  </Card>
+</CardGroup>
+
+## Implementation Guide
+
+### Basic Payment Proof
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY
+});
+
+// Create a payment with proof generation
+const payment = await treeship.commerce.createPayment({
+  amount: 5000,
+  currency: 'USD',
+  recipient: 'agent_xyz',
+  
+  // Proof configuration
+  proofConfig: {
+    type: 'zk-SNARK',
+    assertions: [
+      'amount_within_limit',
+      'recipient_authorized',
+      'funds_available'
+    ]
+  }
+});
+
+// The proof can be shared publicly
+console.log('Payment Proof:', payment.proof);
+// Output: {
+//   proofData: "0x8f9d3a...",
+//   publicInputs: {
+//     timestamp: 1706380800,
+//     merkleRoot: "0x7d4e3..."
+//   },
+//   assertions: {
+//     amount_within_limit: true,
+//     recipient_authorized: true,
+//     funds_available: true
+//   }
+// }
+```
+
+### Advanced Conditional Payments
+
+```javascript
+// Create a conditional payment with complex logic
+const conditionalPayment = await treeship.commerce.createConditionalPayment({
+  conditions: {
+    // Payment releases when ALL conditions are met
+    all: [
+      {
+        type: 'delivery_confirmed',
+        verifier: 'oracle_address',
+        deadline: '2024-12-31'
+      },
+      {
+        type: 'quality_check_passed',
+        threshold: 0.95,
+        inspector: 'inspector_agent_id'
+      }
+    ]
+  },
+  
+  payment: {
+    amount: 10000,
+    currency: 'USD',
+    escrow: true
+  },
+  
+  // Privacy settings
+  privacy: {
+    hideAmount: true,
+    hideConditions: true,
+    revealOnCompletion: ['amount']
+  }
+});
+
+// Generate proof of escrow without revealing details
+const escrowProof = await conditionalPayment.generateEscrowProof();
+```
+
+## Proof Types
+
+### 1. Simple Payment Proofs
+Prove a payment occurred with basic assertions:
+
+```javascript
+const simpleProof = await treeship.commerce.generatePaymentProof({
+  transactionId: 'tx_123',
+  assertions: ['payment_completed', 'amount_correct']
+});
+```
+
+### 2. Range Proofs
+Prove amounts fall within ranges without exact values:
+
+```javascript
+const rangeProof = await treeship.commerce.generateRangeProof({
+  value: 15000,
+  assertions: [
+    { type: 'greater_than', value: 10000 },
+    { type: 'less_than', value: 20000 }
+  ]
+});
+```
+
+### 3. Merkle Proofs
+Prove inclusion in authorized lists:
+
+```javascript
+const merkleProof = await treeship.commerce.generateMerkleProof({
+  element: 'vendor_123',
+  tree: 'authorized_vendors',
+  assertion: 'vendor_is_authorized'
+});
+```
+
+## Real-World Example: Supply Chain Payment
+
+```javascript
+// Supplier agent receives order
+const order = await supplierAgent.receiveOrder({
+  items: ['component_a', 'component_b'],
+  quantity: 1000,
+  requiredBy: '2024-06-01'
+});
+
+// Generate production proof
+const productionProof = await supplierAgent.generateProof({
+  type: 'production_capability',
+  assertions: [
+    'has_materials',
+    'has_capacity',
+    'meets_timeline'
+  ],
+  privateInputs: {
+    inventory: { /* private */ },
+    schedule: { /* private */ }
+  }
+});
+
+// Buyer verifies and creates payment
+const payment = await buyerAgent.createPayment({
+  amount: order.total,
+  conditions: {
+    productionProof: productionProof,
+    deliveryOracle: 'logistics_oracle'
+  },
+  
+  // Multi-stage release
+  stages: [
+    { percentage: 30, trigger: 'production_started' },
+    { percentage: 50, trigger: 'quality_passed' },
+    { percentage: 20, trigger: 'delivery_confirmed' }
+  ]
+});
+
+// Each stage generates its own proof
+const stage1Proof = await payment.completeStage(1, {
+  evidence: productionStartEvidence,
+  generateProof: true
+});
+```
+
+## Verification
+
+Anyone can verify payment proofs without accessing private data:
+
+```javascript
+// Public verification
+const verification = await treeship.commerce.verifyPaymentProof({
+  proof: paymentProof,
+  expectedAssertions: ['payment_completed', 'amount_within_budget']
+});
+
+console.log('Proof Valid:', verification.isValid);
+console.log('Assertions Met:', verification.assertions);
+
+// Selective disclosure
+const disclosure = await treeship.commerce.selectiveDisclose({
+  proof: paymentProof,
+  reveal: ['timestamp', 'currency'],
+  to: 'auditor_address'
+});
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Privacy Optimization">
+    - Minimize public inputs
+    - Use commitment schemes for future reveals
+    - Implement forward secrecy
+    - Regular proof key rotation
+  </Accordion>
+  
+  <Accordion title="Performance Tips">
+    - Pre-compute common proofs
+    - Use proof aggregation for batches
+    - Implement caching strategies
+    - Optimize circuit design
+  </Accordion>
+  
+  <Accordion title="Security Considerations">
+    - Never reuse randomness
+    - Validate all inputs
+    - Implement timeout mechanisms
+    - Use secure multiparty computation for sensitive operations
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+### Common Issues
+
+<Warning>
+  **Proof Generation Failed**: Ensure all private inputs are properly formatted and constraints are satisfiable.
+</Warning>
+
+```javascript
+// Debug proof generation
+try {
+  const proof = await generatePaymentProof(payment);
+} catch (error) {
+  if (error.code === 'UNSATISFIABLE_CONSTRAINTS') {
+    console.log('Check your inputs:', error.details);
+  }
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Compliance Engine" icon="shield" href="/commerce/compliance">
+    Add regulatory compliance to payments
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/proofs/generate">
+    Complete API documentation
+  </Card>
+</CardGroup>

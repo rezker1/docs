@@ -1,0 +1,502 @@
+---
+title: "Generate Proof"
+api: "POST /proofs/generate"
+description: "Generate Zero-Knowledge proofs for agent actions and data verification"
+---
+
+## Request
+
+<ParamField body="proofType" type="string" required>
+  Type of proof to generate. Options:
+  - `performance` - Prove agent performance metrics
+  - `capability` - Prove agent capabilities
+  - `transaction` - Prove transaction validity
+  - `compliance` - Prove regulatory compliance
+  - `data_integrity` - Prove data hasn't been tampered with
+  - `execution` - Prove code execution occurred correctly
+</ParamField>
+
+<ParamField body="circuitType" type="string" default="zk-SNARK">
+  Zero-Knowledge circuit type. Options: `zk-SNARK`, `zk-STARK`
+</ParamField>
+
+<ParamField body="publicInputs" type="object" required>
+  Public inputs that will be revealed in the proof
+  ```json
+  {
+    "timestamp": 1706380800,
+    "version": "1.0",
+    "merkleRoot": "0x7d8f9e8a..."
+  }
+  ```
+</ParamField>
+
+<ParamField body="privateInputs" type="object" required>
+  Private inputs used in computation but not revealed
+  ```json
+  {
+    "secretData": "encrypted_blob",
+    "privateKey": "0x...",
+    "sensitiveMetrics": {...}
+  }
+  ```
+</ParamField>
+
+<ParamField body="assertions" type="array" required>
+  List of statements to prove
+  ```json
+  [
+    "accuracy > 0.95",
+    "latency < 100ms",
+    "data_not_modified",
+    "authorized_access_only"
+  ]
+  ```
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Additional metadata for the proof
+  ```json
+  {
+    "agentId": "agent_123",
+    "taskId": "task_456",
+    "description": "Model accuracy proof"
+  }
+  ```
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.treeship.dev/v1/proofs/generate \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "proofType": "performance",
+    "circuitType": "zk-SNARK",
+    "publicInputs": {
+      "timestamp": 1706380800,
+      "modelVersion": "v2.1",
+      "datasetHash": "0x7d8f9e8a7b6c5d4e"
+    },
+    "privateInputs": {
+      "testResults": [0.97, 0.96, 0.98, 0.95],
+      "trainingData": "encrypted_blob",
+      "hyperparameters": {
+        "learning_rate": 0.001,
+        "batch_size": 32
+      }
+    },
+    "assertions": [
+      "average_accuracy > 0.95",
+      "min_accuracy > 0.90",
+      "training_data_private"
+    ],
+    "metadata": {
+      "agentId": "agent_ml_001",
+      "description": "ML model performance proof"
+    }
+  }'
+```
+
+```javascript JavaScript
+const proof = await treeship.proofs.generate({
+  proofType: 'performance',
+  circuitType: 'zk-SNARK',
+  
+  publicInputs: {
+    timestamp: Date.now(),
+    modelVersion: 'v2.1',
+    datasetHash: '0x7d8f9e8a7b6c5d4e'
+  },
+  
+  privateInputs: {
+    testResults: [0.97, 0.96, 0.98, 0.95],
+    trainingData: encryptedBlob,
+    hyperparameters: {
+      learning_rate: 0.001,
+      batch_size: 32
+    }
+  },
+  
+  assertions: [
+    'average_accuracy > 0.95',
+    'min_accuracy > 0.90',
+    'training_data_private'
+  ],
+  
+  metadata: {
+    agentId: 'agent_ml_001',
+    description: 'ML model performance proof'
+  }
+});
+```
+
+```python Python
+proof = treeship.proofs.generate(
+    proof_type='performance',
+    circuit_type='zk-SNARK',
+    
+    public_inputs={
+        'timestamp': int(time.time()),
+        'model_version': 'v2.1',
+        'dataset_hash': '0x7d8f9e8a7b6c5d4e'
+    },
+    
+    private_inputs={
+        'test_results': [0.97, 0.96, 0.98, 0.95],
+        'training_data': encrypted_blob,
+        'hyperparameters': {
+            'learning_rate': 0.001,
+            'batch_size': 32
+        }
+    },
+    
+    assertions=[
+        'average_accuracy > 0.95',
+        'min_accuracy > 0.90',
+        'training_data_private'
+    ],
+    
+    metadata={
+        'agent_id': 'agent_ml_001',
+        'description': 'ML model performance proof'
+    }
+)
+```
+</RequestExample>
+
+## Response
+
+<ResponseField name="proofId" type="string">
+  Unique identifier for the generated proof
+</ResponseField>
+
+<ResponseField name="proofType" type="string">
+  Type of proof that was generated
+</ResponseField>
+
+<ResponseField name="circuitType" type="string">
+  Zero-Knowledge circuit type used
+</ResponseField>
+
+<ResponseField name="proof" type="object">
+  The generated Zero-Knowledge proof
+  
+  <Expandable title="proof properties">
+    <ResponseField name="data" type="string">
+      Base64 encoded proof data
+    </ResponseField>
+    
+    <ResponseField name="publicInputs" type="object">
+      Public inputs used in the proof
+    </ResponseField>
+    
+    <ResponseField name="verificationKey" type="string">
+      Public key for verifying this proof
+    </ResponseField>
+    
+    <ResponseField name="circuitHash" type="string">
+      Hash of the circuit used to generate the proof
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="assertions" type="object">
+  Results of each assertion
+  ```json
+  {
+    "average_accuracy > 0.95": true,
+    "min_accuracy > 0.90": true,
+    "training_data_private": true
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Proof generation status: `success`, `failed`, `partial`
+</ResponseField>
+
+<ResponseField name="generationTime" type="number">
+  Time taken to generate the proof in milliseconds
+</ResponseField>
+
+<ResponseField name="proofSize" type="number">
+  Size of the proof in bytes
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+  Metadata provided in the request
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of proof generation
+</ResponseField>
+
+<ResponseField name="expiresAt" type="string">
+  ISO 8601 timestamp when proof expires (if applicable)
+</ResponseField>
+
+<ResponseExample>
+```json Success Response
+{
+  "proofId": "proof_7d8f9e8a7b6c5d4e",
+  "proofType": "performance",
+  "circuitType": "zk-SNARK",
+  "proof": {
+    "data": "0x8f9d3a4e5b6c7d8e9f0a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v...",
+    "publicInputs": {
+      "timestamp": 1706380800,
+      "modelVersion": "v2.1",
+      "datasetHash": "0x7d8f9e8a7b6c5d4e"
+    },
+    "verificationKey": "0x2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e",
+    "circuitHash": "0x9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b"
+  },
+  "assertions": {
+    "average_accuracy > 0.95": true,
+    "min_accuracy > 0.90": true,
+    "training_data_private": true
+  },
+  "status": "success",
+  "generationTime": 156,
+  "proofSize": 192,
+  "metadata": {
+    "agentId": "agent_ml_001",
+    "description": "ML model performance proof"
+  },
+  "createdAt": "2024-01-27T12:30:00Z",
+  "expiresAt": "2024-02-27T12:30:00Z"
+}
+```
+
+```json Error Response
+{
+  "error": {
+    "code": "proof_generation_failed",
+    "message": "Circuit constraints not satisfiable",
+    "details": {
+      "failedAssertion": "average_accuracy > 0.95",
+      "actualValue": 0.943,
+      "expectedValue": "> 0.95"
+    }
+  }
+}
+```
+</ResponseExample>
+
+## Proof Types
+
+### Performance Proof
+Prove AI model performance without revealing training data:
+
+```javascript
+const performanceProof = await treeship.proofs.generate({
+  proofType: 'performance',
+  publicInputs: {
+    modelId: 'model_123',
+    benchmarkDataset: 'imagenet_test'
+  },
+  privateInputs: {
+    accuracyScores: [0.97, 0.96, 0.98],
+    trainingData: encryptedData,
+    modelWeights: privateWeights
+  },
+  assertions: [
+    'top1_accuracy > 0.95',
+    'inference_time < 50ms',
+    'no_data_leakage'
+  ]
+});
+```
+
+### Transaction Proof
+Prove transaction validity without revealing amounts:
+
+```javascript
+const transactionProof = await treeship.proofs.generate({
+  proofType: 'transaction',
+  publicInputs: {
+    transactionId: 'tx_789',
+    timestamp: Date.now()
+  },
+  privateInputs: {
+    amount: 50000,
+    balance: 75000,
+    fees: 250
+  },
+  assertions: [
+    'amount > 0',
+    'balance >= amount + fees',
+    'authorized_sender'
+  ]
+});
+```
+
+### Compliance Proof
+Prove regulatory compliance:
+
+```javascript
+const complianceProof = await treeship.proofs.generate({
+  proofType: 'compliance',
+  publicInputs: {
+    regulation: 'GDPR',
+    jurisdiction: 'EU'
+  },
+  privateInputs: {
+    userConsents: consentDatabase,
+    dataProcessingLogs: auditLogs,
+    retentionPeriods: retentionData
+  },
+  assertions: [
+    'explicit_consent_obtained',
+    'data_minimization_applied',
+    'retention_limits_respected'
+  ]
+});
+```
+
+## Advanced Features
+
+### Batch Proof Generation
+Generate multiple proofs efficiently:
+
+```javascript
+const batchProofs = await treeship.proofs.generateBatch([
+  {
+    proofType: 'performance',
+    publicInputs: {...},
+    privateInputs: {...},
+    assertions: [...]
+  },
+  {
+    proofType: 'compliance',
+    publicInputs: {...},
+    privateInputs: {...},
+    assertions: [...]
+  }
+]);
+```
+
+### Proof Composition
+Combine multiple proofs into one:
+
+```javascript
+const composedProof = await treeship.proofs.compose({
+  proofs: [performanceProof.proofId, complianceProof.proofId],
+  composition: 'AND', // All proofs must be valid
+  metadata: {
+    description: 'Combined performance and compliance proof'
+  }
+});
+```
+
+### Custom Circuits
+Use custom Zero-Knowledge circuits:
+
+```javascript
+const customProof = await treeship.proofs.generate({
+  proofType: 'custom',
+  circuitDefinition: {
+    language: 'circom',
+    source: circuitSource,
+    constraints: 1000000
+  },
+  publicInputs: {...},
+  privateInputs: {...}
+});
+```
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="AI Model Verification">
+    Prove model performance without revealing training data:
+    ```javascript
+    // Prove a medical AI model meets accuracy requirements
+    const medicalProof = await treeship.proofs.generate({
+      proofType: 'performance',
+      publicInputs: {
+        modelType: 'diagnostic_classifier',
+        certificationStandard: 'FDA_510k'
+      },
+      privateInputs: {
+        patientData: encryptedPatientTests,
+        diagnosisResults: confidentialResults
+      },
+      assertions: [
+        'sensitivity > 0.95',
+        'specificity > 0.90',
+        'no_bias_detected'
+      ]
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Financial Compliance">
+    Prove financial compliance without exposing transaction details:
+    ```javascript
+    const financialProof = await treeship.proofs.generate({
+      proofType: 'compliance',
+      publicInputs: {
+        regulation: 'SOX',
+        auditPeriod: '2024-Q1'
+      },
+      privateInputs: {
+        transactions: quarterlyTransactions,
+        controls: internalControls
+      },
+      assertions: [
+        'all_transactions_authorized',
+        'segregation_of_duties',
+        'audit_trail_complete'
+      ]
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Supply Chain Verification">
+    Prove supply chain integrity:
+    ```javascript
+    const supplyChainProof = await treeship.proofs.generate({
+      proofType: 'data_integrity',
+      publicInputs: {
+        productId: 'prod_789',
+        destination: 'customer_123'
+      },
+      privateInputs: {
+        supplierData: confidentialSupplierInfo,
+        logisticsData: shippingDetails,
+        qualityData: testResults
+      },
+      assertions: [
+        'authentic_origin',
+        'cold_chain_maintained',
+        'quality_standards_met'
+      ]
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<Warning>
+  Never include sensitive data in `publicInputs`. Use `privateInputs` for confidential information.
+</Warning>
+
+1. **Input Validation**: Always validate inputs before proof generation
+2. **Assertion Design**: Make assertions specific and verifiable
+3. **Key Management**: Securely store verification keys
+4. **Proof Caching**: Cache proofs for repeated verification
+5. **Circuit Optimization**: Optimize circuits for your use case
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Verify Proofs" icon="check-circle" href="/api-reference/proofs/verify">
+    Learn how to verify generated proofs
+  </Card>
+  <Card title="Attestations" icon="certificate" href="/api-reference/attestations/create">
+    Create attestations using proofs
+  </Card>
+</CardGroup>

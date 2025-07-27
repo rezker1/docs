@@ -1,0 +1,997 @@
+---
+title: "Python SDK"
+description: "Complete guide to using the Treeship Python SDK for Zero-Knowledge AI agent development"
+---
+
+## Installation
+
+Install the Treeship Python SDK using pip:
+
+<CodeGroup>
+```bash pip
+pip install treeship
+```
+
+```bash poetry
+poetry add treeship
+```
+
+```bash conda
+conda install -c conda-forge treeship
+```
+</CodeGroup>
+
+## Quick Start
+
+```python
+import os
+from treeship import Treeship
+
+# Initialize the client
+treeship = Treeship(
+    api_key=os.getenv("TREESHIP_API_KEY"),
+    environment="production"  # or "sandbox"
+)
+
+# Create your first agent
+agent = treeship.agents.create(
+    name="MyFirstAgent",
+    capabilities=["text-generation", "data-analysis"],
+    compliance={
+        "frameworks": ["GDPR", "SOC2"]
+    }
+)
+
+print(f"Agent created: {agent.id}")
+```
+
+## Configuration
+
+### Basic Configuration
+
+```python
+from treeship import Treeship
+
+treeship = Treeship(
+    api_key="your_api_key_here",
+    environment="production",  # "production" | "sandbox"
+    base_url="https://api.treeship.dev/v1",  # Optional
+    timeout=30.0,  # Request timeout in seconds
+    max_retries=3,  # Number of retry attempts
+)
+```
+
+### Advanced Configuration
+
+```python
+from treeship import Treeship, Config
+
+config = Config(
+    api_key=os.getenv("TREESHIP_API_KEY"),
+    
+    # Network configuration
+    timeout=60.0,
+    max_retries=5,
+    retry_delay=1.0,
+    headers={
+        "User-Agent": "MyApp/1.0.0"
+    },
+    
+    # ZK configuration
+    zk_config={
+        "circuit_type": "zk-SNARK",  # or "zk-STARK"
+        "proof_caching": True,
+        "batch_size": 10
+    },
+    
+    # Debug options
+    debug=os.getenv("DEBUG") == "true",
+    log_level="INFO"  # DEBUG, INFO, WARNING, ERROR
+)
+
+treeship = Treeship(config=config)
+```
+
+### Using Environment Variables
+
+```python
+# .env file
+TREESHIP_API_KEY=your_api_key_here
+TREESHIP_ENVIRONMENT=production
+TREESHIP_BASE_URL=https://api.treeship.dev/v1
+TREESHIP_TIMEOUT=30
+TREESHIP_DEBUG=false
+
+# Python code
+from treeship import Treeship
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Automatically loads from environment variables
+treeship = Treeship.from_env()
+```
+
+## Agent Management
+
+### Creating Agents
+
+```python
+# Basic agent creation
+basic_agent = treeship.agents.create(
+    name="DataAnalyzer",
+    type="analytical",
+    description="Analyzes financial data with privacy preservation"
+)
+
+# Advanced agent with capabilities and compliance
+advanced_agent = treeship.agents.create(
+    name="TradingBot",
+    type="financial",
+    
+    capabilities=[
+        {
+            "name": "market-analysis",
+            "version": "2.1.0",
+            "parameters": {
+                "timeframes": ["1m", "5m", "1h", "1d"],
+                "max_positions": 10
+            }
+        },
+        {
+            "name": "risk-management",
+            "version": "1.0.0", 
+            "parameters": {
+                "max_drawdown": 0.05,
+                "stop_loss": 0.02
+            }
+        }
+    ],
+    
+    compliance={
+        "frameworks": ["SOX", "MiFID2", "AML"],
+        "jurisdiction": "US",
+        "risk_profile": "medium"
+    },
+    
+    zk_config={
+        "enable_proofs": True,
+        "privacy_level": "high",
+        "proof_types": ["performance", "compliance"]
+    }
+)
+```
+
+### Agent Operations
+
+```python
+# Get agent details
+agent = treeship.agents.get("agent_123")
+
+# Update agent
+updated_agent = treeship.agents.update(
+    "agent_123",
+    name="UpdatedAgent",
+    capabilities=agent.capabilities + ["new-capability"]
+)
+
+# List agents with filtering
+agents = treeship.agents.list(
+    limit=10,
+    offset=0,
+    filter={
+        "type": "financial",
+        "status": "active"
+    }
+)
+
+# Delete agent
+treeship.agents.delete("agent_123")
+```
+
+### Async Support
+
+```python
+import asyncio
+from treeship import AsyncTreeship
+
+async def main():
+    async_treeship = AsyncTreeship(
+        api_key=os.getenv("TREESHIP_API_KEY")
+    )
+    
+    # All operations support async
+    agent = await async_treeship.agents.create(
+        name="AsyncAgent",
+        capabilities=["async-processing"]
+    )
+    
+    print(f"Async agent created: {agent.id}")
+    
+    await async_treeship.close()
+
+# Run async code
+asyncio.run(main())
+```
+
+## Zero-Knowledge Proofs
+
+### Generating Proofs
+
+```python
+from datetime import datetime
+import numpy as np
+
+# Performance proof
+performance_proof = treeship.proofs.generate(
+    proof_type="performance",
+    circuit_type="zk-SNARK",
+    
+    public_inputs={
+        "timestamp": int(datetime.now().timestamp()),
+        "model_version": "v2.1",
+        "benchmark_dataset": "financial_test_2024"
+    },
+    
+    private_inputs={
+        "accuracy_scores": [0.97, 0.96, 0.98, 0.95],
+        "training_data": encrypted_training_data,
+        "model_weights": private_model_weights
+    },
+    
+    assertions=[
+        "average_accuracy > 0.95",
+        "min_accuracy > 0.90", 
+        "no_data_leakage",
+        "bias_score < 0.1"
+    ],
+    
+    metadata={
+        "agent_id": "agent_123",
+        "description": "Q1 2024 performance proof"
+    }
+)
+
+print(f"Proof generated: {performance_proof.proof_id}")
+```
+
+### Working with NumPy Arrays
+
+```python
+import numpy as np
+from treeship.utils import encode_numpy, decode_numpy
+
+# Encode NumPy arrays for proofs
+model_weights = np.random.rand(1000, 500)
+encoded_weights = encode_numpy(model_weights)
+
+proof = treeship.proofs.generate(
+    proof_type="capability",
+    private_inputs={
+        "model_weights": encoded_weights,
+        "bias_terms": encode_numpy(np.random.rand(500))
+    },
+    # ... other parameters
+)
+
+# Decode arrays from proof results
+if proof.metadata.get("weights_hash"):
+    decoded_weights = decode_numpy(proof.metadata["weights_hash"])
+```
+
+### Verifying Proofs
+
+```python
+# Basic verification
+verification = treeship.proofs.verify("proof_abc123")
+
+print(f"Valid: {verification.is_valid}")
+print(f"Assertions: {verification.assertions}")
+
+# Advanced verification with options
+advanced_verification = treeship.proofs.verify(
+    "proof_abc123",
+    check_expiry=True,
+    verify_dependencies=True,
+    include_metrics=True,
+    expected_circuit_hash="0x7d8f9e8a..."
+)
+```
+
+### Batch Operations
+
+```python
+# Generate multiple proofs
+batch_proofs = treeship.proofs.generate_batch([
+    {
+        "proof_type": "performance",
+        "public_inputs": {...},
+        "private_inputs": {...}
+    },
+    {
+        "proof_type": "compliance", 
+        "public_inputs": {...},
+        "private_inputs": {...}
+    }
+])
+
+# Verify multiple proofs
+batch_verification = treeship.proofs.verify_batch([
+    "proof_001",
+    "proof_002",
+    "proof_003"
+])
+
+print(f"All valid: {batch_verification.all_valid}")
+print(f"Success rate: {batch_verification.success_rate}")
+```
+
+## Attestations
+
+### Creating Attestations
+
+```python
+from datetime import datetime, timedelta
+
+# Capability attestation
+capability_attestation = treeship.attestations.create(
+    type="capability",
+    
+    subject={
+        "id": "agent_nlp_001", 
+        "type": "agent",
+        "metadata": {
+            "name": "Language Model",
+            "version": "3.0.0"
+        }
+    },
+    
+    claims=[
+        {
+            "property": "context_length",
+            "value": 128000,
+            "operator": ">=",
+            "threshold": 32000
+        },
+        {
+            "property": "languages_supported", 
+            "value": ["en", "es", "fr", "de", "zh"],
+            "operator": "includes",
+            "threshold": ["en", "es"]
+        }
+    ],
+    
+    evidence={
+        "proofs": ["capability_proof_123"],
+        "documents": [
+            {
+                "type": "benchmark_results",
+                "hash": "0x...",
+                "url": "https://benchmarks.example.com/results"
+            }
+        ]
+    },
+    
+    issuer={
+        "id": "testing_authority_001",
+        "type": "organization", 
+        "credentials": ["iso_17025"]
+    },
+    
+    validity_period={
+        "duration": "1y"
+    },
+    
+    privacy={
+        "zero_knowledge": True,
+        "selective_disclosure": True
+    }
+)
+```
+
+### Working with Pandas DataFrames
+
+```python
+import pandas as pd
+from treeship.utils import dataframe_to_proof_input
+
+# Convert DataFrame to proof input
+performance_data = pd.DataFrame({
+    'accuracy': [0.97, 0.96, 0.98, 0.95],
+    'latency': [50, 45, 52, 48],
+    'throughput': [1000, 1100, 950, 1050]
+})
+
+proof_input = dataframe_to_proof_input(
+    performance_data,
+    public_columns=['timestamp'],
+    private_columns=['accuracy', 'latency', 'throughput']
+)
+
+attestation = treeship.attestations.create(
+    type="performance",
+    evidence={
+        "proofs": [proof_input]
+    },
+    # ... other parameters
+)
+```
+
+### Verifying Attestations
+
+```python
+# Basic verification
+attestation_verification = treeship.attestations.verify("attest_xyz789")
+
+# Selective disclosure
+selective_verification = treeship.attestations.verify(
+    "attest_xyz789",
+    reveal_claims=["context_length"],
+    hide_claims=["training_data", "model_architecture"]
+)
+
+# Query attestations
+attestations = treeship.attestations.query(
+    subject="agent_123",
+    types=["capability", "performance"],
+    issuers=["trusted_authority_001"],
+    valid_only=True
+)
+```
+
+## Commerce
+
+### Creating Transactions
+
+```python
+from decimal import Decimal
+
+# Basic commerce transaction
+transaction = treeship.commerce.create_transaction(
+    type="ai_service_payment",
+    amount=Decimal("50.00"),
+    currency="USD",
+    
+    from_agent={
+        "agent_id": "buyer_agent_001",
+        "wallet_address": "0x..."
+    },
+    
+    to_agent={
+        "agent_id": "seller_agent_002",
+        "wallet_address": "0x..."
+    },
+    
+    service={
+        "type": "data_analysis",
+        "parameters": {
+            "dataset_size": "1GB",
+            "analysis_type": "statistical"
+        }
+    },
+    
+    zk_config={
+        "enable_privacy": True,
+        "generate_proof": True
+    }
+)
+
+# Execute transaction
+result = transaction.execute()
+print(f"Transaction executed: {result.transaction_id}")
+```
+
+### Payment Proofs
+
+```python
+# Generate payment proof
+payment_proof = treeship.commerce.generate_payment_proof(
+    transaction_id="tx_123",
+    
+    assertions=[
+        "amount_correct",
+        "funds_available", 
+        "authorized_transfer",
+        "compliance_met"
+    ],
+    
+    privacy={
+        "hide_amount": True,
+        "hide_parties": False,
+        "provide_range_proof": True
+    }
+)
+
+# Verify payment
+payment_verification = treeship.commerce.verify_payment("tx_123")
+print(f"Payment valid: {payment_verification.is_valid}")
+```
+
+## Error Handling
+
+### Basic Error Handling
+
+```python
+from treeship.exceptions import TreeshipError
+
+try:
+    agent = treeship.agents.create(name="TestAgent")
+except TreeshipError as e:
+    print(f"API Error: {e.code} - {e.message}")
+    print(f"Details: {e.details}")
+except Exception as e:
+    print(f"Unexpected error: {e}")
+```
+
+### Advanced Error Handling
+
+```python
+from treeship.exceptions import (
+    TreeshipError,
+    ValidationError,
+    AuthenticationError,
+    RateLimitError,
+    ProofGenerationError
+)
+import time
+
+def handle_treeship_operation():
+    try:
+        return treeship.proofs.generate(...)
+    except AuthenticationError:
+        print("Authentication failed - check API key")
+        raise
+    except ValidationError as e:
+        print(f"Validation error: {e.validation_errors}")
+        raise
+    except RateLimitError as e:
+        print(f"Rate limited - retry after: {e.retry_after}")
+        time.sleep(e.retry_after)
+        return handle_treeship_operation()  # Retry
+    except ProofGenerationError as e:
+        print(f"Proof generation failed: {e.circuit_error}")
+        raise
+    except TreeshipError as e:
+        print(f"Unknown API error: {e.code} - {e.message}")
+        raise
+```
+
+### Retry Decorators
+
+```python
+from treeship.decorators import retry_on_rate_limit, exponential_backoff
+
+@retry_on_rate_limit(max_retries=3)
+@exponential_backoff(base_delay=1.0, max_delay=60.0)
+def reliable_proof_generation():
+    return treeship.proofs.generate(
+        proof_type="performance",
+        # ... parameters
+    )
+
+# Automatically retries on rate limits and network errors
+proof = reliable_proof_generation()
+```
+
+## Streaming and Real-time
+
+### Proof Streaming
+
+```python
+# Stream proof generation status
+def on_proof_started(proof):
+    print(f"Proof generation started: {proof.proof_id}")
+
+def on_proof_progress(proof, progress):
+    print(f"Proof {proof.proof_id}: {progress.percentage}% complete")
+
+def on_proof_completed(proof):
+    print(f"Proof completed: {proof.proof_id}")
+
+def on_error(error):
+    print(f"Stream error: {error}")
+
+proof_stream = treeship.proofs.create_generation_stream(
+    proof_type="performance",
+    batch_size=5
+)
+
+proof_stream.on_proof_started = on_proof_started
+proof_stream.on_proof_progress = on_proof_progress
+proof_stream.on_proof_completed = on_proof_completed
+proof_stream.on_error = on_error
+
+proof_stream.start()
+```
+
+### Real-time Verification with asyncio
+
+```python
+import asyncio
+from treeship import AsyncTreeship
+
+async def monitor_verifications():
+    async_treeship = AsyncTreeship(
+        api_key=os.getenv("TREESHIP_API_KEY")
+    )
+    
+    verification_monitor = async_treeship.verification.create_monitor(
+        agent_ids=["agent_001", "agent_002"],
+        events=["attestation_created", "attestation_revoked", "proof_verified"]
+    )
+    
+    async for event in verification_monitor:
+        if event.type == "attestation_created":
+            print(f"New attestation: {event.data.attestation_id}")
+        elif event.type == "attestation_revoked":
+            print(f"Attestation revoked: {event.data.attestation_id}")
+            # Update local state
+
+# Run the monitor
+asyncio.run(monitor_verifications())
+```
+
+## Data Science Integration
+
+### Working with scikit-learn
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import joblib
+from treeship.integrations.sklearn import create_model_proof
+
+# Train model
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Generate predictions and calculate metrics
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+
+# Create proof of model performance
+model_proof = create_model_proof(
+    treeship=treeship,
+    model=model,
+    test_data=(X_test, y_test),
+    predictions=y_pred,
+    metrics={"accuracy": accuracy},
+    privacy_level="high"
+)
+
+print(f"Model proof created: {model_proof.proof_id}")
+```
+
+### TensorFlow/Keras Integration
+
+```python
+import tensorflow as tf
+from treeship.integrations.tensorflow import TensorFlowProofGenerator
+
+# Create and train model
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(128, activation='relu', input_shape=(784,)),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+history = model.fit(x_train, y_train, epochs=5, validation_data=(x_test, y_test))
+
+# Generate proof of training process
+proof_generator = TensorFlowProofGenerator(treeship)
+
+training_proof = proof_generator.create_training_proof(
+    model=model,
+    training_history=history,
+    test_data=(x_test, y_test),
+    
+    assertions=[
+        "final_accuracy > 0.95",
+        "no_overfitting",
+        "stable_training"
+    ],
+    
+    privacy={
+        "hide_weights": True,
+        "hide_training_data": True,
+        "provide_performance_proof": True
+    }
+)
+```
+
+### PyTorch Integration
+
+```python
+import torch
+import torch.nn as nn
+from treeship.integrations.pytorch import PyTorchProofGenerator
+
+class SimpleNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(784, 128)
+        self.fc2 = nn.Linear(128, 10)
+        self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(0.2)
+    
+    def forward(self, x):
+        x = self.relu(self.fc1(x))
+        x = self.dropout(x)
+        return self.fc2(x)
+
+# Train model
+model = SimpleNet()
+# ... training code ...
+
+# Generate proof
+proof_generator = PyTorchProofGenerator(treeship)
+
+model_proof = proof_generator.create_model_proof(
+    model=model,
+    test_loader=test_loader,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    
+    privacy_config={
+        "hide_model_architecture": False,
+        "hide_weights": True,
+        "generate_performance_proof": True
+    }
+)
+```
+
+## Testing
+
+### Unit Testing
+
+```python
+import unittest
+from unittest.mock import patch, MagicMock
+from treeship import Treeship
+
+class TestTreeshipIntegration(unittest.TestCase):
+    def setUp(self):
+        self.treeship = Treeship(
+            api_key="test_key",
+            environment="sandbox"
+        )
+    
+    @patch('treeship.agents.AgentClient.create')
+    def test_agent_creation(self, mock_create):
+        # Mock response
+        mock_create.return_value = MagicMock(
+            id="agent_test_123",
+            name="TestAgent",
+            status="active"
+        )
+        
+        # Test agent creation
+        agent = self.treeship.agents.create(name="TestAgent")
+        
+        self.assertEqual(agent.id, "agent_test_123")
+        self.assertEqual(agent.name, "TestAgent")
+        mock_create.assert_called_once()
+
+if __name__ == "__main__":
+    unittest.main()
+```
+
+### pytest Integration
+
+```python
+import pytest
+from treeship import Treeship, TreeshipError
+
+@pytest.fixture
+def treeship_client():
+    return Treeship(
+        api_key=os.getenv("TREESHIP_TEST_API_KEY", "test_key"),
+        environment="sandbox"
+    )
+
+@pytest.fixture
+def sample_agent(treeship_client):
+    agent = treeship_client.agents.create(
+        name="TestAgent",
+        capabilities=["test-capability"]
+    )
+    yield agent
+    # Cleanup
+    treeship_client.agents.delete(agent.id)
+
+def test_agent_verification(treeship_client, sample_agent):
+    verification = treeship_client.agents.verify(
+        sample_agent.id,
+        verification_type="identity"
+    )
+    
+    assert verification.verified is True
+    assert verification.agent_id == sample_agent.id
+
+def test_proof_generation_error():
+    treeship = Treeship(api_key="invalid_key")
+    
+    with pytest.raises(TreeshipError) as exc_info:
+        treeship.proofs.generate(
+            proof_type="performance",
+            public_inputs={},
+            private_inputs={}
+        )
+    
+    assert "authentication" in str(exc_info.value).lower()
+```
+
+### Integration Testing
+
+```python
+import pytest
+from treeship import Treeship
+
+@pytest.mark.integration
+class TestTreeshipIntegration:
+    @classmethod
+    def setup_class(cls):
+        cls.treeship = Treeship(
+            api_key=os.getenv("TREESHIP_TEST_API_KEY"),
+            environment="sandbox"
+        )
+    
+    def test_end_to_end_workflow(self):
+        # Create agent
+        agent = self.treeship.agents.create(
+            name="IntegrationTestAgent",
+            capabilities=["data-processing"]
+        )
+        
+        # Generate proof
+        proof = self.treeship.proofs.generate(
+            proof_type="capability",
+            public_inputs={"agent_id": agent.id},
+            private_inputs={"test_data": [1, 2, 3]},
+            assertions=["agent_exists"]
+        )
+        
+        # Verify proof
+        verification = self.treeship.proofs.verify(proof.proof_id)
+        assert verification.is_valid
+        
+        # Create attestation
+        attestation = self.treeship.attestations.create(
+            type="capability",
+            subject={"id": agent.id, "type": "agent"},
+            claims=[{"property": "test_capability", "value": True}],
+            evidence={"proofs": [proof.proof_id]}
+        )
+        
+        # Verify attestation
+        att_verification = self.treeship.attestations.verify(
+            attestation.attestation_id
+        )
+        assert att_verification.is_valid
+        
+        # Cleanup
+        self.treeship.agents.delete(agent.id)
+```
+
+## Performance and Optimization
+
+### Connection Pooling
+
+```python
+from treeship import Treeship
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+# Custom session with connection pooling
+session = requests.Session()
+
+# Configure retries
+retry_strategy = Retry(
+    total=3,
+    backoff_factor=1,
+    status_forcelist=[429, 500, 502, 503, 504]
+)
+
+adapter = HTTPAdapter(
+    pool_connections=100,
+    pool_maxsize=100,
+    max_retries=retry_strategy
+)
+
+session.mount("http://", adapter)
+session.mount("https://", adapter)
+
+# Use custom session
+treeship = Treeship(
+    api_key=os.getenv("TREESHIP_API_KEY"),
+    session=session
+)
+```
+
+### Caching with Redis
+
+```python
+import redis
+from treeship import Treeship
+from treeship.cache import RedisCache
+
+# Configure Redis cache
+redis_client = redis.Redis(
+    host="localhost",
+    port=6379,
+    db=0,
+    decode_responses=True
+)
+
+cache = RedisCache(
+    redis_client=redis_client,
+    default_ttl=300,  # 5 minutes
+    key_prefix="treeship:"
+)
+
+treeship = Treeship(
+    api_key=os.getenv("TREESHIP_API_KEY"),
+    cache=cache
+)
+
+# Cache will automatically be used for:
+# - Agent data
+# - Proof verifications  
+# - Attestation verifications
+```
+
+### Async Batch Processing
+
+```python
+import asyncio
+from treeship import AsyncTreeship
+
+async def process_agents_batch(agent_data_list):
+    async_treeship = AsyncTreeship(
+        api_key=os.getenv("TREESHIP_API_KEY")
+    )
+    
+    # Create agents in parallel
+    create_tasks = [
+        async_treeship.agents.create(**agent_data)
+        for agent_data in agent_data_list
+    ]
+    
+    agents = await asyncio.gather(*create_tasks)
+    
+    # Generate proofs in parallel
+    proof_tasks = [
+        async_treeship.proofs.generate(
+            proof_type="capability",
+            public_inputs={"agent_id": agent.id},
+            private_inputs={"capabilities": agent.capabilities}
+        )
+        for agent in agents
+    ]
+    
+    proofs = await asyncio.gather(*proof_tasks)
+    
+    await async_treeship.close()
+    
+    return list(zip(agents, proofs))
+
+# Process 100 agents in parallel
+agent_data = [{"name": f"Agent{i}", "capabilities": ["test"]} for i in range(100)]
+results = asyncio.run(process_agents_batch(agent_data))
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="JavaScript SDK" icon="js" href="/sdk/javascript">
+    Learn about the JavaScript SDK
+  </Card>
+  <Card title="SDK Examples" icon="code" href="/sdk/examples">
+    See practical SDK examples
+  </Card>
+</CardGroup>

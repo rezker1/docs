@@ -1,0 +1,351 @@
+---
+title: "Compliance Engine"
+description: "Automated regulatory compliance for AI agent transactions with privacy preservation"
+---
+
+## Overview
+
+The Treeship Compliance Engine enables AI agents to automatically meet regulatory requirements across jurisdictions while maintaining transaction privacy through Zero-Knowledge proofs.
+
+<Info>
+  Prove compliance without revealing confidential business data or personal information.
+</Info>
+
+## Supported Regulations
+
+<Tabs>
+  <Tab title="Financial">
+    - **KYC/AML**: Know Your Customer / Anti-Money Laundering
+    - **PSD2**: Payment Services Directive 2
+    - **SOX**: Sarbanes-Oxley Act
+    - **MiFID II**: Markets in Financial Instruments Directive
+  </Tab>
+  <Tab title="Data Privacy">
+    - **GDPR**: General Data Protection Regulation
+    - **CCPA**: California Consumer Privacy Act
+    - **PIPEDA**: Personal Information Protection and Electronic Documents Act
+    - **LGPD**: Lei Geral de Proteção de Dados (Brazil)
+  </Tab>
+  <Tab title="Industry Specific">
+    - **HIPAA**: Health Insurance Portability and Accountability Act
+    - **PCI DSS**: Payment Card Industry Data Security Standard
+    - **ISO 27001**: Information Security Management
+    - **SOC 2**: Service Organization Control 2
+  </Tab>
+</Tabs>
+
+## Implementation
+
+### Basic Compliance Check
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY
+});
+
+// Create compliance-aware transaction
+const transaction = await treeship.commerce.createTransaction({
+  type: 'cross_border_payment',
+  amount: 50000,
+  fromCountry: 'US',
+  toCountry: 'EU',
+  
+  compliance: {
+    frameworks: ['GDPR', 'PSD2', 'AML'],
+    generateProof: true
+  }
+});
+
+// Generate compliance proof
+const complianceProof = await transaction.generateComplianceProof({
+  assertions: [
+    'gdpr_consent_obtained',
+    'aml_checks_passed',
+    'psd2_authentication_complete'
+  ],
+  
+  // Private inputs (never exposed)
+  privateInputs: {
+    customerData: { /* encrypted */ },
+    riskScore: 0.23,
+    verificationMethod: 'biometric'
+  }
+});
+
+console.log('Compliance verified:', complianceProof.isValid);
+```
+
+### Multi-Jurisdiction Compliance
+
+```javascript
+// Agent operating across multiple jurisdictions
+const globalAgent = await treeship.commerce.createAgent({
+  name: "GlobalTrader",
+  
+  compliance: {
+    jurisdictions: {
+      'US': ['SOX', 'AML', 'OFAC'],
+      'EU': ['GDPR', 'PSD2', 'MiFID2'],
+      'UK': ['GDPR', 'FCA', 'AML'],
+      'JP': ['APPI', 'FIEA']
+    },
+    
+    // Automatic compliance routing
+    autoRoute: true,
+    fallbackJurisdiction: 'US'
+  }
+});
+
+// Transaction automatically complies with both jurisdictions
+const crossBorderTx = await globalAgent.createTransaction({
+  from: { country: 'US', entity: 'us_subsidiary' },
+  to: { country: 'EU', entity: 'eu_customer' },
+  amount: 100000,
+  
+  // Automatically applies US + EU compliance
+  autoCompliance: true
+});
+```
+
+## Compliance Proofs
+
+### 1. Data Minimization Proofs
+
+Prove you're collecting only necessary data:
+
+```javascript
+const dataProof = await treeship.compliance.generateDataMinimizationProof({
+  dataFields: ['email', 'country', 'age_range'],
+  purpose: 'service_delivery',
+  
+  assertions: [
+    'fields_necessary_for_purpose',
+    'no_excessive_collection',
+    'retention_period_defined'
+  ]
+});
+```
+
+### 2. Consent Proofs
+
+Verify consent without exposing personal data:
+
+```javascript
+const consentProof = await treeship.compliance.generateConsentProof({
+  consentId: 'consent_hash_123',
+  
+  assertions: [
+    'explicit_consent_given',
+    'consent_not_expired',
+    'withdrawal_mechanism_available',
+    'specific_purpose_defined'
+  ],
+  
+  // Merkle tree of consents
+  merkleRoot: '0x7f9a3b...'
+});
+```
+
+### 3. Audit Trail Proofs
+
+Maintain verifiable audit trails:
+
+```javascript
+const auditProof = await treeship.compliance.generateAuditProof({
+  timeRange: {
+    start: '2024-01-01',
+    end: '2024-12-31'
+  },
+  
+  assertions: [
+    'all_transactions_logged',
+    'no_gaps_in_records',
+    'immutable_storage',
+    'authorized_access_only'
+  ]
+});
+```
+
+## Real-World Example: Healthcare Data Processing
+
+```javascript
+// Healthcare AI agent processing patient data
+const healthcareAgent = await treeship.commerce.createAgent({
+  name: "HealthAnalyzer",
+  type: "medical_ai",
+  
+  compliance: {
+    frameworks: ['HIPAA', 'GDPR', 'FDA'],
+    certifications: ['ISO_13485', 'SOC2_TYPE2']
+  }
+});
+
+// Process patient data with compliance
+const analysis = await healthcareAgent.analyzePatientData({
+  // Encrypted patient data
+  encryptedData: patientDataBlob,
+  
+  compliance: {
+    // HIPAA Requirements
+    hipaa: {
+      minimumNecessary: true,
+      deIdentification: 'safe_harbor',
+      accessControls: true
+    },
+    
+    // GDPR Requirements
+    gdpr: {
+      lawfulBasis: 'vital_interests',
+      dataSubjectRights: true,
+      crossBorderTransfer: 'adequacy_decision'
+    }
+  },
+  
+  // Generate proof of compliant processing
+  generateProof: true
+});
+
+// Multi-layer compliance proof
+const complianceBundle = await analysis.generateComplianceBundle({
+  layers: [
+    {
+      framework: 'HIPAA',
+      assertions: [
+        'phi_encrypted_at_rest',
+        'access_logged',
+        'minimum_necessary_applied'
+      ]
+    },
+    {
+      framework: 'GDPR',
+      assertions: [
+        'lawful_basis_documented',
+        'purpose_limitation_enforced',
+        'data_minimization_applied'
+      ]
+    }
+  ]
+});
+
+// Share proof with regulators
+const regulatorProof = await complianceBundle.prepareForRegulator({
+  regulator: 'FDA',
+  includeMetadata: true,
+  signWithKey: healthcareAgent.complianceKey
+});
+```
+
+## Automated Compliance Workflows
+
+<Steps>
+  <Step title="Define Compliance Requirements">
+    ```javascript
+    const requirements = await treeship.compliance.defineRequirements({
+      businessType: 'financial_services',
+      jurisdictions: ['US', 'EU'],
+      dataTypes: ['personal', 'financial', 'behavioral'],
+      transactionTypes: ['payments', 'lending', 'investments']
+    });
+    ```
+  </Step>
+  
+  <Step title="Generate Compliance Policy">
+    ```javascript
+    const policy = await treeship.compliance.generatePolicy({
+      requirements: requirements,
+      riskTolerance: 'low',
+      automationLevel: 'full'
+    });
+    ```
+  </Step>
+  
+  <Step title="Deploy Compliance Monitors">
+    ```javascript
+    const monitors = await treeship.compliance.deployMonitors({
+      policy: policy,
+      alertThresholds: {
+        suspiciousActivity: 0.7,
+        regulatoryChange: 'immediate',
+        nonCompliance: 'zero_tolerance'
+      }
+    });
+    ```
+  </Step>
+  
+  <Step title="Continuous Compliance">
+    ```javascript
+    // Real-time compliance monitoring
+    monitors.on('compliance_event', async (event) => {
+      if (event.type === 'potential_violation') {
+        // Automatic remediation
+        const remediation = await treeship.compliance.remediate({
+          event: event,
+          actions: ['pause_transaction', 'generate_report', 'notify_compliance']
+        });
+      }
+    });
+    ```
+  </Step>
+</Steps>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Privacy by Design">
+    - Implement data minimization from the start
+    - Use homomorphic encryption for computations
+    - Generate proofs locally when possible
+    - Implement secure multi-party computation
+  </Accordion>
+  
+  <Accordion title="Regulatory Updates">
+    - Subscribe to regulatory change feeds
+    - Implement versioned compliance policies
+    - Maintain backward compatibility
+    - Test compliance updates in sandbox
+  </Accordion>
+  
+  <Accordion title="Audit Readiness">
+    - Maintain immutable audit logs
+    - Generate periodic compliance reports
+    - Implement proof aggregation
+    - Prepare regulator-specific views
+  </Accordion>
+</AccordionGroup>
+
+## Compliance Dashboard
+
+Monitor compliance in real-time:
+
+```javascript
+// Initialize compliance dashboard
+const dashboard = await treeship.compliance.createDashboard({
+  agent: globalAgent,
+  metrics: [
+    'compliance_score',
+    'violations_prevented',
+    'proofs_generated',
+    'regulatory_coverage'
+  ]
+});
+
+// Real-time compliance metrics
+dashboard.on('metrics_update', (metrics) => {
+  console.log('Compliance Score:', metrics.complianceScore);
+  console.log('Active Regulations:', metrics.activeRegulations);
+  console.log('Proof Generation Rate:', metrics.proofsPerSecond);
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="code" href="/api-reference/compliance/check">
+    Complete compliance API documentation
+  </Card>
+  <Card title="Attestations" icon="certificate" href="/zk/attestations">
+    Create verifiable compliance attestations
+  </Card>
+</CardGroup>

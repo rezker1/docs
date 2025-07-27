@@ -1,0 +1,664 @@
+---
+title: "JavaScript SDK"
+description: "Complete guide to using the Treeship JavaScript SDK for Zero-Knowledge AI agent development"
+---
+
+## Installation
+
+Install the Treeship JavaScript SDK using npm or yarn:
+
+<CodeGroup>
+```bash npm
+npm install @treeship/sdk
+```
+
+```bash yarn
+yarn add @treeship/sdk
+```
+
+```bash pnpm
+pnpm add @treeship/sdk
+```
+</CodeGroup>
+
+## Quick Start
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+
+// Initialize the client
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY,
+  environment: 'production' // or 'sandbox'
+});
+
+// Create your first agent
+const agent = await treeship.agents.create({
+  name: "MyFirstAgent",
+  capabilities: ["text-generation", "data-analysis"],
+  compliance: {
+    frameworks: ["GDPR", "SOC2"]
+  }
+});
+
+console.log('Agent created:', agent.id);
+```
+
+## Configuration
+
+### Basic Configuration
+
+```javascript
+const treeship = new Treeship({
+  apiKey: 'your_api_key_here',
+  environment: 'production', // 'production' | 'sandbox'
+  baseUrl: 'https://api.treeship.dev/v1', // Optional custom base URL
+  timeout: 30000, // Request timeout in milliseconds
+  retries: 3, // Number of retry attempts
+});
+```
+
+### Advanced Configuration
+
+```javascript
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY,
+  
+  // Network configuration
+  httpConfig: {
+    timeout: 60000,
+    retries: 5,
+    retryDelay: 1000,
+    headers: {
+      'User-Agent': 'MyApp/1.0.0'
+    }
+  },
+  
+  // ZK configuration
+  zkConfig: {
+    circuitType: 'zk-SNARK', // or 'zk-STARK'
+    proofCaching: true,
+    batchSize: 10
+  },
+  
+  // Debug options
+  debug: process.env.NODE_ENV === 'development',
+  logLevel: 'info' // 'debug' | 'info' | 'warn' | 'error'
+});
+```
+
+## Agent Management
+
+### Creating Agents
+
+```javascript
+// Basic agent creation
+const basicAgent = await treeship.agents.create({
+  name: "DataAnalyzer",
+  type: "analytical",
+  description: "Analyzes financial data with privacy preservation"
+});
+
+// Advanced agent with capabilities and compliance
+const advancedAgent = await treeship.agents.create({
+  name: "TradingBot",
+  type: "financial",
+  
+  capabilities: [
+    {
+      name: "market-analysis",
+      version: "2.1.0",
+      parameters: {
+        timeframes: ["1m", "5m", "1h", "1d"],
+        maxPositions: 10
+      }
+    },
+    {
+      name: "risk-management", 
+      version: "1.0.0",
+      parameters: {
+        maxDrawdown: 0.05,
+        stopLoss: 0.02
+      }
+    }
+  ],
+  
+  compliance: {
+    frameworks: ["SOX", "MiFID2", "AML"],
+    jurisdiction: "US",
+    riskProfile: "medium"
+  },
+  
+  zkConfig: {
+    enableProofs: true,
+    privacyLevel: "high",
+    proofTypes: ["performance", "compliance"]
+  }
+});
+```
+
+### Agent Operations
+
+```javascript
+// Get agent details
+const agent = await treeship.agents.get('agent_123');
+
+// Update agent
+const updatedAgent = await treeship.agents.update('agent_123', {
+  name: "UpdatedAgent",
+  capabilities: [...agent.capabilities, "new-capability"]
+});
+
+// List agents
+const agents = await treeship.agents.list({
+  limit: 10,
+  offset: 0,
+  filter: {
+    type: "financial",
+    status: "active"
+  }
+});
+
+// Delete agent
+await treeship.agents.delete('agent_123');
+```
+
+## Zero-Knowledge Proofs
+
+### Generating Proofs
+
+```javascript
+// Performance proof
+const performanceProof = await treeship.proofs.generate({
+  proofType: 'performance',
+  circuitType: 'zk-SNARK',
+  
+  publicInputs: {
+    timestamp: Date.now(),
+    modelVersion: 'v2.1',
+    benchmarkDataset: 'financial_test_2024'
+  },
+  
+  privateInputs: {
+    accuracyScores: [0.97, 0.96, 0.98, 0.95],
+    trainingData: encryptedTrainingData,
+    modelWeights: privateModelWeights
+  },
+  
+  assertions: [
+    'average_accuracy > 0.95',
+    'min_accuracy > 0.90',
+    'no_data_leakage',
+    'bias_score < 0.1'
+  ],
+  
+  metadata: {
+    agentId: 'agent_123',
+    description: 'Q1 2024 performance proof'
+  }
+});
+
+console.log('Proof generated:', performanceProof.proofId);
+```
+
+### Verifying Proofs
+
+```javascript
+// Basic verification
+const verification = await treeship.proofs.verify('proof_abc123');
+
+console.log('Valid:', verification.isValid);
+console.log('Assertions:', verification.assertions);
+
+// Advanced verification with options
+const advancedVerification = await treeship.proofs.verify('proof_abc123', {
+  checkExpiry: true,
+  verifyDependencies: true,
+  includeMetrics: true,
+  expectedCircuitHash: '0x7d8f9e8a...'
+});
+```
+
+### Batch Operations
+
+```javascript
+// Generate multiple proofs
+const batchProofs = await treeship.proofs.generateBatch([
+  {
+    proofType: 'performance',
+    publicInputs: {...},
+    privateInputs: {...}
+  },
+  {
+    proofType: 'compliance',
+    publicInputs: {...},
+    privateInputs: {...}
+  }
+]);
+
+// Verify multiple proofs
+const batchVerification = await treeship.proofs.verifyBatch([
+  'proof_001',
+  'proof_002', 
+  'proof_003'
+]);
+
+console.log('All valid:', batchVerification.allValid);
+console.log('Success rate:', batchVerification.successRate);
+```
+
+## Attestations
+
+### Creating Attestations
+
+```javascript
+// Capability attestation
+const capabilityAttestation = await treeship.attestations.create({
+  type: 'capability',
+  
+  subject: {
+    id: 'agent_nlp_001',
+    type: 'agent',
+    metadata: {
+      name: 'Language Model',
+      version: '3.0.0'
+    }
+  },
+  
+  claims: [
+    {
+      property: 'context_length',
+      value: 128000,
+      operator: '>=',
+      threshold: 32000
+    },
+    {
+      property: 'languages_supported',
+      value: ['en', 'es', 'fr', 'de', 'zh'],
+      operator: 'includes',
+      threshold: ['en', 'es']
+    }
+  ],
+  
+  evidence: {
+    proofs: ['capability_proof_123'],
+    documents: [
+      {
+        type: 'benchmark_results',
+        hash: '0x...',
+        url: 'https://benchmarks.example.com/results'
+      }
+    ]
+  },
+  
+  issuer: {
+    id: 'testing_authority_001',
+    type: 'organization',
+    credentials: ['iso_17025']
+  },
+  
+  validityPeriod: {
+    duration: '1y'
+  },
+  
+  privacy: {
+    zero_knowledge: true,
+    selective_disclosure: true
+  }
+});
+```
+
+### Verifying Attestations
+
+```javascript
+// Basic verification
+const attestationVerification = await treeship.attestations.verify('attest_xyz789');
+
+// Selective disclosure
+const selectiveVerification = await treeship.attestations.verify(
+  'attest_xyz789',
+  {
+    revealClaims: ['context_length'],
+    hideClaims: ['training_data', 'model_architecture']
+  }
+);
+
+// Query attestations
+const attestations = await treeship.attestations.query({
+  subject: 'agent_123',
+  types: ['capability', 'performance'],
+  issuers: ['trusted_authority_001'],
+  validOnly: true
+});
+```
+
+## Commerce
+
+### Creating Transactions
+
+```javascript
+// Basic commerce transaction
+const transaction = await treeship.commerce.createTransaction({
+  type: 'ai_service_payment',
+  amount: 50.00,
+  currency: 'USD',
+  
+  from: {
+    agentId: 'buyer_agent_001',
+    walletAddress: '0x...'
+  },
+  
+  to: {
+    agentId: 'seller_agent_002', 
+    walletAddress: '0x...'
+  },
+  
+  service: {
+    type: 'data_analysis',
+    parameters: {
+      dataset_size: '1GB',
+      analysis_type: 'statistical'
+    }
+  },
+  
+  zkConfig: {
+    enablePrivacy: true,
+    generateProof: true
+  }
+});
+
+// Monitor transaction status
+transaction.on('status_change', (status) => {
+  console.log('Transaction status:', status);
+});
+
+await transaction.execute();
+```
+
+### Payment Proofs
+
+```javascript
+// Generate payment proof
+const paymentProof = await treeship.commerce.generatePaymentProof({
+  transactionId: 'tx_123',
+  
+  assertions: [
+    'amount_correct',
+    'funds_available',
+    'authorized_transfer',
+    'compliance_met'
+  ],
+  
+  privacy: {
+    hideAmount: true,
+    hideParties: false,
+    provideRangeProof: true
+  }
+});
+
+// Verify payment
+const paymentVerification = await treeship.commerce.verifyPayment('tx_123');
+console.log('Payment valid:', paymentVerification.isValid);
+```
+
+## Error Handling
+
+### Basic Error Handling
+
+```javascript
+try {
+  const agent = await treeship.agents.create({
+    name: "TestAgent"
+  });
+} catch (error) {
+  if (error instanceof TreeshipError) {
+    console.log('API Error:', error.code, error.message);
+    console.log('Details:', error.details);
+  } else {
+    console.log('Unexpected error:', error.message);
+  }
+}
+```
+
+### Advanced Error Handling
+
+```javascript
+import { 
+  TreeshipError, 
+  ValidationError, 
+  AuthenticationError,
+  RateLimitError,
+  ProofGenerationError 
+} from '@treeship/sdk';
+
+async function handleTreeshipOperation() {
+  try {
+    return await treeship.proofs.generate({...});
+  } catch (error) {
+    switch (true) {
+      case error instanceof AuthenticationError:
+        console.log('Authentication failed - check API key');
+        break;
+        
+      case error instanceof ValidationError:
+        console.log('Validation error:', error.validationErrors);
+        break;
+        
+      case error instanceof RateLimitError:
+        console.log('Rate limited - retry after:', error.retryAfter);
+        await sleep(error.retryAfter * 1000);
+        return handleTreeshipOperation(); // Retry
+        
+      case error instanceof ProofGenerationError:
+        console.log('Proof generation failed:', error.circuitError);
+        break;
+        
+      default:
+        console.log('Unknown error:', error.message);
+    }
+    
+    throw error;
+  }
+}
+```
+
+## Streaming and Real-time
+
+### Proof Streaming
+
+```javascript
+// Stream proof generation status
+const proofStream = treeship.proofs.createGenerationStream({
+  proofType: 'performance',
+  batchSize: 5
+});
+
+proofStream.on('proof_started', (proof) => {
+  console.log('Proof generation started:', proof.proofId);
+});
+
+proofStream.on('proof_progress', (proof, progress) => {
+  console.log(`Proof ${proof.proofId}: ${progress.percentage}% complete`);
+});
+
+proofStream.on('proof_completed', (proof) => {
+  console.log('Proof completed:', proof.proofId);
+});
+
+proofStream.on('error', (error) => {
+  console.error('Stream error:', error);
+});
+```
+
+### Real-time Verification
+
+```javascript
+// Real-time verification monitoring
+const verificationMonitor = treeship.verification.createMonitor({
+  agentIds: ['agent_001', 'agent_002'],
+  events: ['attestation_created', 'attestation_revoked', 'proof_verified']
+});
+
+verificationMonitor.on('attestation_created', (attestation) => {
+  console.log('New attestation:', attestation.attestationId);
+});
+
+verificationMonitor.on('attestation_revoked', (attestation) => {
+  console.log('Attestation revoked:', attestation.attestationId);
+  // Update local state
+});
+```
+
+## TypeScript Support
+
+The SDK includes full TypeScript support:
+
+```typescript
+import { Treeship, Agent, Proof, Attestation } from '@treeship/sdk';
+
+interface CustomAgentMetadata {
+  industry: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  certifications: string[];
+}
+
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY!
+});
+
+// Type-safe agent creation
+const agent: Agent<CustomAgentMetadata> = await treeship.agents.create({
+  name: "TypedAgent",
+  metadata: {
+    industry: "finance",
+    riskLevel: "low",
+    certifications: ["SOC2", "ISO27001"]
+  }
+});
+
+// Type-safe proof generation
+const proof: Proof = await treeship.proofs.generate({
+  proofType: 'performance',
+  publicInputs: {
+    timestamp: Date.now(),
+    version: "1.0.0"
+  },
+  privateInputs: {
+    metrics: [0.95, 0.97, 0.96]
+  },
+  assertions: ['average > 0.95']
+});
+```
+
+## Performance Optimization
+
+### Connection Pooling
+
+```javascript
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY,
+  
+  // HTTP connection pooling
+  httpConfig: {
+    keepAlive: true,
+    maxSockets: 100,
+    maxFreeSockets: 10,
+    timeout: 30000
+  }
+});
+```
+
+### Caching
+
+```javascript
+// Enable automatic caching
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY,
+  
+  caching: {
+    enabled: true,
+    ttl: 300000, // 5 minutes
+    maxSize: 1000, // Max cache entries
+    
+    // Cache specific operations
+    cacheVerifications: true,
+    cacheAgentData: true,
+    cacheProofs: false // Proofs change frequently
+  }
+});
+
+// Manual cache control
+await treeship.cache.clear('agent_123');
+await treeship.cache.invalidatePattern('proof_*');
+```
+
+## Testing
+
+### Mocking
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+import { TreeshipMock } from '@treeship/sdk/testing';
+
+// Use mock for testing
+const mockTreeship = new TreeshipMock();
+
+// Set up mock responses
+mockTreeship.agents.create.mockResolvedValue({
+  id: 'agent_test_123',
+  name: 'TestAgent',
+  status: 'active'
+});
+
+// Use in tests
+const agent = await mockTreeship.agents.create({
+  name: 'TestAgent'
+});
+
+expect(agent.id).toBe('agent_test_123');
+```
+
+### Integration Testing
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+
+describe('Treeship Integration Tests', () => {
+  let treeship;
+  
+  beforeAll(() => {
+    treeship = new Treeship({
+      apiKey: process.env.TREESHIP_TEST_API_KEY,
+      environment: 'sandbox'
+    });
+  });
+  
+  test('should create and verify agent', async () => {
+    const agent = await treeship.agents.create({
+      name: 'IntegrationTestAgent'
+    });
+    
+    expect(agent.id).toBeDefined();
+    
+    const verification = await treeship.agents.verify(agent.id, {
+      verificationType: 'identity'
+    });
+    
+    expect(verification.verified).toBe(true);
+    
+    // Cleanup
+    await treeship.agents.delete(agent.id);
+  });
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Python SDK" icon="python" href="/sdk/python">
+    Learn about the Python SDK
+  </Card>
+  <Card title="SDK Examples" icon="code" href="/sdk/examples">
+    See practical SDK examples
+  </Card>
+</CardGroup>

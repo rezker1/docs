@@ -1,0 +1,1461 @@
+---
+title: "SDK Examples"
+description: "Practical examples and code samples for building Zero-Knowledge AI applications with Treeship"
+---
+
+## Getting Started Examples
+
+### Basic Agent Setup
+
+<CodeGroup>
+```javascript JavaScript
+import { Treeship } from '@treeship/sdk';
+
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY
+});
+
+// Create a simple agent
+const agent = await treeship.agents.create({
+  name: "HelloWorld",
+  capabilities: ["text-generation"],
+  description: "My first Treeship agent"
+});
+
+console.log(`Agent created: ${agent.id}`);
+```
+
+```python Python
+from treeship import Treeship
+import os
+
+treeship = Treeship(api_key=os.getenv("TREESHIP_API_KEY"))
+
+# Create a simple agent
+agent = treeship.agents.create(
+    name="HelloWorld",
+    capabilities=["text-generation"],
+    description="My first Treeship agent"
+)
+
+print(f"Agent created: {agent.id}")
+```
+</CodeGroup>
+
+### First Zero-Knowledge Proof
+
+<CodeGroup>
+```javascript JavaScript
+// Generate your first proof
+const proof = await treeship.proofs.generate({
+  proofType: 'performance',
+  circuitType: 'zk-SNARK',
+  
+  publicInputs: {
+    timestamp: Date.now(),
+    modelVersion: 'v1.0'
+  },
+  
+  privateInputs: {
+    accuracy: 0.97,
+    testResults: [0.96, 0.97, 0.98]
+  },
+  
+  assertions: [
+    'accuracy > 0.95'
+  ]
+});
+
+// Verify the proof
+const verification = await treeship.proofs.verify(proof.proofId);
+console.log('Proof verified:', verification.isValid);
+```
+
+```python Python
+# Generate your first proof
+proof = treeship.proofs.generate(
+    proof_type='performance',
+    circuit_type='zk-SNARK',
+    
+    public_inputs={
+        'timestamp': int(time.time()),
+        'model_version': 'v1.0'
+    },
+    
+    private_inputs={
+        'accuracy': 0.97,
+        'test_results': [0.96, 0.97, 0.98]
+    },
+    
+    assertions=[
+        'accuracy > 0.95'
+    ]
+)
+
+# Verify the proof
+verification = treeship.proofs.verify(proof.proof_id)
+print(f'Proof verified: {verification.is_valid}')
+```
+</CodeGroup>
+
+## Real-World Use Cases
+
+### 1. Medical AI Compliance
+
+Create a medical AI agent with HIPAA compliance proofs:
+
+<CodeGroup>
+```javascript JavaScript
+// Medical AI with compliance
+const medicalAgent = await treeship.agents.create({
+  name: "DiagnosticAI",
+  type: "medical",
+  capabilities: ["image-analysis", "diagnosis-generation"],
+  
+  compliance: {
+    frameworks: ["HIPAA", "FDA"],
+    certifications: ["iso_13485", "soc2_type2"]
+  }
+});
+
+// Generate compliance proof for patient data processing
+const hipaaProof = await treeship.proofs.generate({
+  proofType: 'compliance',
+  
+  publicInputs: {
+    regulation: 'HIPAA',
+    processingDate: new Date().toISOString(),
+    dataType: 'medical_images'
+  },
+  
+  privateInputs: {
+    patientData: encryptedPatientData,
+    diagnosticResults: results,
+    accessLogs: auditLogs
+  },
+  
+  assertions: [
+    'minimum_necessary_standard_met',
+    'patient_consent_obtained',
+    'data_encrypted_at_rest',
+    'access_properly_logged'
+  ]
+});
+
+// Create attestation for medical device clearance
+const fdaAttestation = await treeship.attestations.create({
+  type: 'compliance',
+  subject: {
+    id: medicalAgent.id,
+    type: 'agent'
+  },
+  claims: [
+    {
+      property: 'fda_510k_cleared',
+      value: true,
+      clearanceNumber: 'K123456789'
+    },
+    {
+      property: 'diagnostic_accuracy',
+      value: 0.97,
+      operator: '>=',
+      threshold: 0.95
+    }
+  ],
+  evidence: {
+    proofs: [hipaaProof.proofId],
+    documents: [
+      {
+        type: 'fda_clearance_letter',
+        hash: '0x...'
+      }
+    ]
+  }
+});
+```
+
+```python Python
+# Medical AI with compliance
+medical_agent = treeship.agents.create(
+    name="DiagnosticAI",
+    type="medical",
+    capabilities=["image-analysis", "diagnosis-generation"],
+    
+    compliance={
+        "frameworks": ["HIPAA", "FDA"],
+        "certifications": ["iso_13485", "soc2_type2"]
+    }
+)
+
+# Generate compliance proof for patient data processing
+hipaa_proof = treeship.proofs.generate(
+    proof_type='compliance',
+    
+    public_inputs={
+        'regulation': 'HIPAA',
+        'processing_date': datetime.now().isoformat(),
+        'data_type': 'medical_images'
+    },
+    
+    private_inputs={
+        'patient_data': encrypted_patient_data,
+        'diagnostic_results': results,
+        'access_logs': audit_logs
+    },
+    
+    assertions=[
+        'minimum_necessary_standard_met',
+        'patient_consent_obtained', 
+        'data_encrypted_at_rest',
+        'access_properly_logged'
+    ]
+)
+
+# Create attestation for medical device clearance
+fda_attestation = treeship.attestations.create(
+    type='compliance',
+    subject={
+        'id': medical_agent.id,
+        'type': 'agent'
+    },
+    claims=[
+        {
+            'property': 'fda_510k_cleared',
+            'value': True,
+            'clearance_number': 'K123456789'
+        },
+        {
+            'property': 'diagnostic_accuracy',
+            'value': 0.97,
+            'operator': '>=',
+            'threshold': 0.95
+        }
+    ],
+    evidence={
+        'proofs': [hipaa_proof.proof_id],
+        'documents': [
+            {
+                'type': 'fda_clearance_letter',
+                'hash': '0x...'
+            }
+        ]
+    }
+)
+```
+</CodeGroup>
+
+### 2. Financial Trading Bot
+
+Build a compliant financial trading agent:
+
+<CodeGroup>
+```javascript JavaScript
+// Create trading agent with financial compliance
+const tradingAgent = await treeship.agents.create({
+  name: "AlgoTrader",
+  type: "financial",
+  capabilities: ["market-analysis", "risk-management", "order-execution"],
+  
+  compliance: {
+    frameworks: ["SOX", "MiFID2", "AML"],
+    jurisdiction: "US",
+    riskProfile: "medium"
+  }
+});
+
+// Generate proof of trading performance
+const performanceProof = await treeship.proofs.generate({
+  proofType: 'performance',
+  
+  publicInputs: {
+    timeframe: '2024-Q1',
+    assetClass: 'equities',
+    benchmarkIndex: 'SP500'
+  },
+  
+  privateInputs: {
+    returns: [0.02, 0.015, -0.005, 0.025], // Daily returns
+    sharpeRatio: 2.3,
+    maxDrawdown: 0.03,
+    tradingVolume: 50000000 // $50M
+  },
+  
+  assertions: [
+    'sharpe_ratio > 2.0',
+    'max_drawdown < 0.05',
+    'positive_alpha',
+    'risk_controls_active'
+  ]
+});
+
+// Generate compliance proof for SOX requirements
+const soxProof = await treeship.proofs.generate({
+  proofType: 'compliance',
+  
+  publicInputs: {
+    regulation: 'SOX',
+    auditPeriod: '2024-Q1'
+  },
+  
+  privateInputs: {
+    internalControls: controlsData,
+    auditTrails: auditData,
+    segregationOfDuties: roleData
+  },
+  
+  assertions: [
+    'internal_controls_effective',
+    'audit_trail_complete',
+    'segregation_of_duties_maintained',
+    'financial_reporting_accurate'
+  ]
+});
+
+// Create commerce transaction with proofs
+const transaction = await treeship.commerce.createTransaction({
+  type: 'equity_purchase',
+  amount: 100000,
+  currency: 'USD',
+  
+  from: { agentId: tradingAgent.id },
+  to: { exchange: 'NYSE', symbol: 'AAPL' },
+  
+  compliance: {
+    requiredProofs: [performanceProof.proofId, soxProof.proofId],
+    frameworks: ['SOX', 'MiFID2']
+  }
+});
+```
+
+```python Python
+# Create trading agent with financial compliance
+trading_agent = treeship.agents.create(
+    name="AlgoTrader",
+    type="financial", 
+    capabilities=["market-analysis", "risk-management", "order-execution"],
+    
+    compliance={
+        "frameworks": ["SOX", "MiFID2", "AML"],
+        "jurisdiction": "US",
+        "risk_profile": "medium"
+    }
+)
+
+# Generate proof of trading performance
+performance_proof = treeship.proofs.generate(
+    proof_type='performance',
+    
+    public_inputs={
+        'timeframe': '2024-Q1',
+        'asset_class': 'equities', 
+        'benchmark_index': 'SP500'
+    },
+    
+    private_inputs={
+        'returns': [0.02, 0.015, -0.005, 0.025],  # Daily returns
+        'sharpe_ratio': 2.3,
+        'max_drawdown': 0.03,
+        'trading_volume': 50000000  # $50M
+    },
+    
+    assertions=[
+        'sharpe_ratio > 2.0',
+        'max_drawdown < 0.05',
+        'positive_alpha',
+        'risk_controls_active'
+    ]
+)
+
+# Generate compliance proof for SOX requirements
+sox_proof = treeship.proofs.generate(
+    proof_type='compliance',
+    
+    public_inputs={
+        'regulation': 'SOX',
+        'audit_period': '2024-Q1'
+    },
+    
+    private_inputs={
+        'internal_controls': controls_data,
+        'audit_trails': audit_data,
+        'segregation_of_duties': role_data
+    },
+    
+    assertions=[
+        'internal_controls_effective',
+        'audit_trail_complete',
+        'segregation_of_duties_maintained',
+        'financial_reporting_accurate'
+    ]
+)
+
+# Create commerce transaction with proofs
+transaction = treeship.commerce.create_transaction(
+    type='equity_purchase',
+    amount=100000,
+    currency='USD',
+    
+    from_agent={'agent_id': trading_agent.id},
+    to_agent={'exchange': 'NYSE', 'symbol': 'AAPL'},
+    
+    compliance={
+        'required_proofs': [performance_proof.proof_id, sox_proof.proof_id],
+        'frameworks': ['SOX', 'MiFID2']
+    }
+)
+```
+</CodeGroup>
+
+### 3. Supply Chain Verification
+
+Track products through supply chain with privacy:
+
+<CodeGroup>
+```javascript JavaScript
+// Create supply chain agents
+const suppliers = await Promise.all([
+  treeship.agents.create({
+    name: "RawMaterialSupplier",
+    type: "supplier",
+    capabilities: ["material-sourcing", "quality-testing"],
+    compliance: { frameworks: ["ISO9001", "FairTrade"] }
+  }),
+  treeship.agents.create({
+    name: "Manufacturer", 
+    type: "manufacturer",
+    capabilities: ["production", "quality-control"],
+    compliance: { frameworks: ["ISO9001", "OSHA"] }
+  }),
+  treeship.agents.create({
+    name: "Distributor",
+    type: "distributor", 
+    capabilities: ["logistics", "cold-chain"],
+    compliance: { frameworks: ["HACCP", "GDP"] }
+  })
+]);
+
+// Generate proof of ethical sourcing
+const sourcingProof = await treeship.proofs.generate({
+  proofType: 'compliance',
+  
+  publicInputs: {
+    productId: 'PROD_001',
+    standard: 'FairTrade',
+    originCountry: 'Colombia'
+  },
+  
+  privateInputs: {
+    supplierAudits: auditResults,
+    laborConditions: laborData,
+    environmentalImpact: envData,
+    paymentRecords: paymentData
+  },
+  
+  assertions: [
+    'fair_wages_paid',
+    'safe_working_conditions',
+    'no_child_labor',
+    'environmental_standards_met'
+  ]
+});
+
+// Create product attestation
+const productAttestation = await treeship.attestations.create({
+  type: 'credential',
+  
+  subject: {
+    id: 'PROD_001',
+    type: 'product'
+  },
+  
+  claims: [
+    {
+      property: 'ethically_sourced',
+      value: true,
+      standard: 'FairTrade'
+    },
+    {
+      property: 'quality_grade',
+      value: 'A+',
+      testDate: new Date().toISOString()
+    }
+  ],
+  
+  evidence: {
+    proofs: [sourcingProof.proofId],
+    witnessAgents: suppliers.map(s => s.id)
+  }
+});
+
+// Track through supply chain
+const supplyChainTx = await treeship.commerce.createTransaction({
+  type: 'supply_chain_transfer',
+  
+  from: { agentId: suppliers[0].id },
+  to: { agentId: suppliers[1].id },
+  
+  asset: {
+    productId: 'PROD_001',
+    quantity: 1000,
+    unit: 'kg'
+  },
+  
+  attestations: [productAttestation.attestationId],
+  
+  zkConfig: {
+    hideCommercialTerms: true,
+    provideIntegrityProof: true
+  }
+});
+```
+
+```python Python
+# Create supply chain agents
+suppliers = []
+for agent_data in [
+    {
+        'name': 'RawMaterialSupplier',
+        'type': 'supplier',
+        'capabilities': ['material-sourcing', 'quality-testing'],
+        'compliance': {'frameworks': ['ISO9001', 'FairTrade']}
+    },
+    {
+        'name': 'Manufacturer',
+        'type': 'manufacturer', 
+        'capabilities': ['production', 'quality-control'],
+        'compliance': {'frameworks': ['ISO9001', 'OSHA']}
+    },
+    {
+        'name': 'Distributor',
+        'type': 'distributor',
+        'capabilities': ['logistics', 'cold-chain'], 
+        'compliance': {'frameworks': ['HACCP', 'GDP']}
+    }
+]:
+    suppliers.append(treeship.agents.create(**agent_data))
+
+# Generate proof of ethical sourcing
+sourcing_proof = treeship.proofs.generate(
+    proof_type='compliance',
+    
+    public_inputs={
+        'product_id': 'PROD_001',
+        'standard': 'FairTrade',
+        'origin_country': 'Colombia'
+    },
+    
+    private_inputs={
+        'supplier_audits': audit_results,
+        'labor_conditions': labor_data,
+        'environmental_impact': env_data,
+        'payment_records': payment_data
+    },
+    
+    assertions=[
+        'fair_wages_paid',
+        'safe_working_conditions',
+        'no_child_labor',
+        'environmental_standards_met'
+    ]
+)
+
+# Create product attestation
+product_attestation = treeship.attestations.create(
+    type='credential',
+    
+    subject={
+        'id': 'PROD_001',
+        'type': 'product'
+    },
+    
+    claims=[
+        {
+            'property': 'ethically_sourced',
+            'value': True,
+            'standard': 'FairTrade'
+        },
+        {
+            'property': 'quality_grade',
+            'value': 'A+',
+            'test_date': datetime.now().isoformat()
+        }
+    ],
+    
+    evidence={
+        'proofs': [sourcing_proof.proof_id],
+        'witness_agents': [s.id for s in suppliers]
+    }
+)
+
+# Track through supply chain
+supply_chain_tx = treeship.commerce.create_transaction(
+    type='supply_chain_transfer',
+    
+    from_agent={'agent_id': suppliers[0].id},
+    to_agent={'agent_id': suppliers[1].id},
+    
+    asset={
+        'product_id': 'PROD_001',
+        'quantity': 1000,
+        'unit': 'kg'
+    },
+    
+    attestations=[product_attestation.attestation_id],
+    
+    zk_config={
+        'hide_commercial_terms': True,
+        'provide_integrity_proof': True
+    }
+)
+```
+</CodeGroup>
+
+## Machine Learning Integration
+
+### Scikit-learn Model Verification
+
+<CodeGroup>
+```javascript JavaScript
+// Note: This example shows the concept - actual ML integration 
+// would typically be done in Python
+
+// Create proof of model training process
+const mlProof = await treeship.proofs.generate({
+  proofType: 'performance',
+  
+  publicInputs: {
+    modelType: 'RandomForest',
+    datasetSize: 10000,
+    featureCount: 50,
+    trainingTime: '2024-01-15T10:00:00Z'
+  },
+  
+  privateInputs: {
+    // Hashed/encrypted training data
+    trainingDataHash: '0x7d8f9e8a...',
+    hyperparameters: {
+      n_estimators: 100,
+      max_depth: 10,
+      random_state: 42
+    },
+    crossValidationScores: [0.96, 0.97, 0.95, 0.98, 0.96]
+  },
+  
+  assertions: [
+    'cv_mean_accuracy > 0.95',
+    'cv_std_accuracy < 0.02',
+    'no_data_leakage',
+    'hyperparameters_valid'
+  ]
+});
+
+// Create model attestation
+const modelAttestation = await treeship.attestations.create({
+  type: 'performance',
+  
+  subject: {
+    id: 'model_rf_001',
+    type: 'ml_model'
+  },
+  
+  claims: [
+    {
+      property: 'accuracy',
+      value: 0.96,
+      operator: '>=',
+      threshold: 0.95
+    },
+    {
+      property: 'training_data_private',
+      value: true
+    }
+  ],
+  
+  evidence: {
+    proofs: [mlProof.proofId]
+  }
+});
+```
+
+```python Python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.datasets import make_classification
+import hashlib
+import json
+
+# Generate sample dataset
+X, y = make_classification(
+    n_samples=10000, 
+    n_features=50, 
+    n_classes=2,
+    random_state=42
+)
+
+# Train model
+model = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=10, 
+    random_state=42
+)
+
+# Perform cross-validation
+cv_scores = cross_val_score(model, X, y, cv=5)
+
+# Create data hash (for privacy)
+data_hash = hashlib.sha256(
+    json.dumps(X.tolist()).encode()
+).hexdigest()
+
+# Generate proof of model performance
+ml_proof = treeship.proofs.generate(
+    proof_type='performance',
+    
+    public_inputs={
+        'model_type': 'RandomForest',
+        'dataset_size': len(X),
+        'feature_count': X.shape[1],
+        'training_time': datetime.now().isoformat()
+    },
+    
+    private_inputs={
+        'training_data_hash': data_hash,
+        'hyperparameters': {
+            'n_estimators': 100,
+            'max_depth': 10,
+            'random_state': 42
+        },
+        'cross_validation_scores': cv_scores.tolist()
+    },
+    
+    assertions=[
+        'cv_mean_accuracy > 0.95',
+        'cv_std_accuracy < 0.02',
+        'no_data_leakage',
+        'hyperparameters_valid'
+    ]
+)
+
+# Create model attestation
+model_attestation = treeship.attestations.create(
+    type='performance',
+    
+    subject={
+        'id': 'model_rf_001',
+        'type': 'ml_model'
+    },
+    
+    claims=[
+        {
+            'property': 'accuracy',
+            'value': float(cv_scores.mean()),
+            'operator': '>=',
+            'threshold': 0.95
+        },
+        {
+            'property': 'training_data_private',
+            'value': True
+        }
+    ],
+    
+    evidence={
+        'proofs': [ml_proof.proof_id]
+    }
+)
+
+print(f"Model attestation created: {model_attestation.attestation_id}")
+```
+</CodeGroup>
+
+### TensorFlow Model Certification
+
+<CodeGroup>
+```python Python
+import tensorflow as tf
+from treeship.integrations.tensorflow import TensorFlowProofGenerator
+
+# Create and train model
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(128, activation='relu', input_shape=(784,)),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10, activation='softmax')
+])
+
+model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Train with history tracking
+history = model.fit(
+    x_train, y_train,
+    epochs=10,
+    validation_data=(x_test, y_test),
+    verbose=1
+)
+
+# Generate proof using Treeship TensorFlow integration
+proof_generator = TensorFlowProofGenerator(treeship)
+
+training_proof = proof_generator.create_training_proof(
+    model=model,
+    training_history=history,
+    test_data=(x_test, y_test),
+    
+    privacy_config={
+        'hide_weights': True,
+        'hide_training_data': True,
+        'provide_performance_metrics': True
+    },
+    
+    assertions=[
+        'final_accuracy > 0.95',
+        'validation_accuracy > 0.90',
+        'no_overfitting_detected',
+        'training_stable'
+    ]
+)
+
+# Create comprehensive model attestation
+model_attestation = treeship.attestations.create(
+    type='performance',
+    
+    subject={
+        'id': f'tf_model_{model.name}',
+        'type': 'neural_network',
+        'metadata': {
+            'framework': 'tensorflow',
+            'architecture': 'feedforward',
+            'parameters': model.count_params()
+        }
+    },
+    
+    claims=[
+        {
+            'property': 'test_accuracy',
+            'value': float(history.history['val_accuracy'][-1]),
+            'operator': '>=',
+            'threshold': 0.95
+        },
+        {
+            'property': 'model_size',
+            'value': model.count_params(),
+            'operator': '<',
+            'threshold': 1000000  # Less than 1M parameters
+        }
+    ],
+    
+    evidence={
+        'proofs': [training_proof.proof_id]
+    }
+)
+```
+</CodeGroup>
+
+## Advanced Patterns
+
+### Multi-Party Verification
+
+Create systems where multiple parties can verify without revealing private data:
+
+<CodeGroup>
+```javascript JavaScript
+// Multi-party verification scenario
+class MultiPartyVerification {
+  constructor(treeship) {
+    this.treeship = treeship;
+    this.parties = new Map();
+  }
+  
+  async addParty(name, agent) {
+    this.parties.set(name, agent);
+  }
+  
+  async createConsortiumProof(sharedAssertion, privateData) {
+    const proofs = [];
+    
+    // Each party generates their own proof
+    for (const [name, agent] of this.parties) {
+      const proof = await this.treeship.proofs.generate({
+        proofType: 'consortium',
+        
+        publicInputs: {
+          assertion: sharedAssertion,
+          partyId: agent.id,
+          timestamp: Date.now()
+        },
+        
+        privateInputs: privateData[name],
+        
+        assertions: [sharedAssertion]
+      });
+      
+      proofs.push({ party: name, proof });
+    }
+    
+    // Aggregate proofs
+    const aggregatedProof = await this.treeship.proofs.aggregate({
+      proofs: proofs.map(p => p.proof.proofId),
+      aggregationType: 'threshold',
+      threshold: Math.ceil(this.parties.size * 0.67) // 2/3 majority
+    });
+    
+    return aggregatedProof;
+  }
+}
+
+// Usage
+const consortium = new MultiPartyVerification(treeship);
+
+await consortium.addParty('bank_a', bankAgentA);
+await consortium.addParty('bank_b', bankAgentB);
+await consortium.addParty('bank_c', bankAgentC);
+
+const proof = await consortium.createConsortiumProof(
+  'transaction_amount_within_limits',
+  {
+    'bank_a': { localTransaction: 100000, localLimits: 500000 },
+    'bank_b': { localTransaction: 75000, localLimits: 300000 },
+    'bank_c': { localTransaction: 125000, localLimits: 600000 }
+  }
+);
+```
+
+```python Python
+# Multi-party verification scenario
+class MultiPartyVerification:
+    def __init__(self, treeship_client):
+        self.treeship = treeship_client
+        self.parties = {}
+    
+    def add_party(self, name, agent):
+        self.parties[name] = agent
+    
+    async def create_consortium_proof(self, shared_assertion, private_data):
+        proofs = []
+        
+        # Each party generates their own proof
+        for name, agent in self.parties.items():
+            proof = await self.treeship.proofs.generate(
+                proof_type='consortium',
+                
+                public_inputs={
+                    'assertion': shared_assertion,
+                    'party_id': agent.id,
+                    'timestamp': int(time.time())
+                },
+                
+                private_inputs=private_data[name],
+                
+                assertions=[shared_assertion]
+            )
+            
+            proofs.append({'party': name, 'proof': proof})
+        
+        # Aggregate proofs  
+        aggregated_proof = await self.treeship.proofs.aggregate(
+            proofs=[p['proof'].proof_id for p in proofs],
+            aggregation_type='threshold',
+            threshold=math.ceil(len(self.parties) * 0.67)  # 2/3 majority
+        )
+        
+        return aggregated_proof
+
+# Usage
+consortium = MultiPartyVerification(treeship)
+
+consortium.add_party('bank_a', bank_agent_a)
+consortium.add_party('bank_b', bank_agent_b) 
+consortium.add_party('bank_c', bank_agent_c)
+
+proof = await consortium.create_consortium_proof(
+    'transaction_amount_within_limits',
+    {
+        'bank_a': {'local_transaction': 100000, 'local_limits': 500000},
+        'bank_b': {'local_transaction': 75000, 'local_limits': 300000},
+        'bank_c': {'local_transaction': 125000, 'local_limits': 600000}
+    }
+)
+```
+</CodeGroup>
+
+### Attestation Marketplace
+
+Build a marketplace for trading verified attestations:
+
+<CodeGroup>
+```javascript JavaScript
+class AttestationMarketplace {
+  constructor(treeship) {
+    this.treeship = treeship;
+  }
+  
+  async listAttestation(attestationId, price, terms) {
+    // Create marketplace listing
+    const listing = await this.treeship.commerce.createListing({
+      type: 'attestation_sale',
+      attestationId,
+      price,
+      currency: 'USD',
+      terms,
+      
+      // Privacy settings
+      privacy: {
+        hideSellerIdentity: true,
+        provideVerificationOnly: true
+      }
+    });
+    
+    return listing;
+  }
+  
+  async searchAttestations(criteria) {
+    const results = await this.treeship.attestations.search({
+      types: criteria.types,
+      claims: criteria.requiredClaims,
+      issuer_reputation: '>= 0.9',
+      valid_only: true,
+      
+      // Marketplace filters
+      for_sale: true,
+      price_range: criteria.priceRange
+    });
+    
+    // Verify each attestation
+    const verifiedResults = [];
+    for (const result of results) {
+      const verification = await this.treeship.attestations.verify(
+        result.attestationId
+      );
+      
+      if (verification.isValid) {
+        verifiedResults.push({
+          ...result,
+          verification,
+          trustScore: verification.trustScore
+        });
+      }
+    }
+    
+    return verifiedResults.sort((a, b) => b.trustScore - a.trustScore);
+  }
+  
+  async purchaseAttestation(listingId, buyerAgentId) {
+    // Create secure purchase transaction
+    const transaction = await this.treeship.commerce.createTransaction({
+      type: 'attestation_purchase',
+      listingId,
+      buyerAgentId,
+      
+      // Escrow settings
+      escrow: {
+        enabled: true,
+        releaseConditions: [
+          'attestation_verified',
+          'buyer_confirms_receipt'
+        ]
+      }
+    });
+    
+    return transaction;
+  }
+}
+
+// Usage
+const marketplace = new AttestationMarketplace(treeship);
+
+// List an attestation for sale
+await marketplace.listAttestation(
+  'attest_performance_123',
+  1000, // $1000
+  {
+    transferable: true,
+    exclusiveUse: false,
+    validityGuarantee: '1y'
+  }
+);
+
+// Search and buy attestations
+const results = await marketplace.searchAttestations({
+  types: ['performance', 'capability'],
+  requiredClaims: ['accuracy > 0.95'],
+  priceRange: [100, 2000]
+});
+
+if (results.length > 0) {
+  const purchase = await marketplace.purchaseAttestation(
+    results[0].listingId,
+    'buyer_agent_001'
+  );
+}
+```
+
+```python Python
+class AttestationMarketplace:
+    def __init__(self, treeship_client):
+        self.treeship = treeship_client
+    
+    async def list_attestation(self, attestation_id, price, terms):
+        # Create marketplace listing
+        listing = await self.treeship.commerce.create_listing(
+            type='attestation_sale',
+            attestation_id=attestation_id,
+            price=price,
+            currency='USD',
+            terms=terms,
+            
+            # Privacy settings
+            privacy={
+                'hide_seller_identity': True,
+                'provide_verification_only': True
+            }
+        )
+        
+        return listing
+    
+    async def search_attestations(self, criteria):
+        results = await self.treeship.attestations.search(
+            types=criteria['types'],
+            claims=criteria['required_claims'],
+            issuer_reputation='>= 0.9',
+            valid_only=True,
+            
+            # Marketplace filters
+            for_sale=True,
+            price_range=criteria['price_range']
+        )
+        
+        # Verify each attestation
+        verified_results = []
+        for result in results:
+            verification = await self.treeship.attestations.verify(
+                result.attestation_id
+            )
+            
+            if verification.is_valid:
+                verified_results.append({
+                    **result,
+                    'verification': verification,
+                    'trust_score': verification.trust_score
+                })
+        
+        return sorted(verified_results, 
+                     key=lambda x: x['trust_score'], 
+                     reverse=True)
+    
+    async def purchase_attestation(self, listing_id, buyer_agent_id):
+        # Create secure purchase transaction
+        transaction = await self.treeship.commerce.create_transaction(
+            type='attestation_purchase',
+            listing_id=listing_id,
+            buyer_agent_id=buyer_agent_id,
+            
+            # Escrow settings
+            escrow={
+                'enabled': True,
+                'release_conditions': [
+                    'attestation_verified',
+                    'buyer_confirms_receipt'
+                ]
+            }
+        )
+        
+        return transaction
+
+# Usage
+marketplace = AttestationMarketplace(treeship)
+
+# List an attestation for sale
+await marketplace.list_attestation(
+    'attest_performance_123',
+    1000,  # $1000
+    {
+        'transferable': True,
+        'exclusive_use': False,
+        'validity_guarantee': '1y'
+    }
+)
+
+# Search and buy attestations
+results = await marketplace.search_attestations({
+    'types': ['performance', 'capability'],
+    'required_claims': ['accuracy > 0.95'],
+    'price_range': [100, 2000]
+})
+
+if results:
+    purchase = await marketplace.purchase_attestation(
+        results[0]['listing_id'],
+        'buyer_agent_001'
+    )
+```
+</CodeGroup>
+
+## Testing Examples
+
+### Unit Testing with Mocks
+
+<CodeGroup>
+```javascript JavaScript
+// Jest testing example
+import { Treeship } from '@treeship/sdk';
+import { jest } from '@jest/globals';
+
+// Mock the SDK
+jest.mock('@treeship/sdk');
+
+describe('Agent Management', () => {
+  let treeship;
+  
+  beforeEach(() => {
+    treeship = new Treeship({ apiKey: 'test-key' });
+  });
+  
+  test('should create agent with correct parameters', async () => {
+    const mockAgent = {
+      id: 'agent_test_123',
+      name: 'TestAgent',
+      status: 'active'
+    };
+    
+    treeship.agents.create.mockResolvedValue(mockAgent);
+    
+    const agent = await treeship.agents.create({
+      name: 'TestAgent',
+      capabilities: ['test-capability']
+    });
+    
+    expect(agent.id).toBe('agent_test_123');
+    expect(treeship.agents.create).toHaveBeenCalledWith({
+      name: 'TestAgent',
+      capabilities: ['test-capability']
+    });
+  });
+  
+  test('should handle agent creation errors', async () => {
+    const error = new Error('API Error');
+    treeship.agents.create.mockRejectedValue(error);
+    
+    await expect(
+      treeship.agents.create({ name: 'InvalidAgent' })
+    ).rejects.toThrow('API Error');
+  });
+});
+```
+
+```python Python
+# pytest testing example
+import pytest
+from unittest.mock import Mock, AsyncMock
+from treeship import Treeship
+
+@pytest.fixture
+def mock_treeship():
+    treeship = Mock(spec=Treeship)
+    
+    # Mock agents
+    treeship.agents = Mock()
+    treeship.agents.create = AsyncMock()
+    treeship.agents.verify = AsyncMock()
+    
+    # Mock proofs
+    treeship.proofs = Mock()
+    treeship.proofs.generate = AsyncMock()
+    treeship.proofs.verify = AsyncMock()
+    
+    return treeship
+
+@pytest.mark.asyncio
+async def test_agent_creation(mock_treeship):
+    # Setup mock response
+    mock_agent = {
+        'id': 'agent_test_123',
+        'name': 'TestAgent',
+        'status': 'active'
+    }
+    mock_treeship.agents.create.return_value = mock_agent
+    
+    # Test agent creation
+    agent = await mock_treeship.agents.create(
+        name='TestAgent',
+        capabilities=['test-capability']
+    )
+    
+    assert agent['id'] == 'agent_test_123'
+    mock_treeship.agents.create.assert_called_once_with(
+        name='TestAgent',
+        capabilities=['test-capability']
+    )
+
+@pytest.mark.asyncio 
+async def test_proof_generation_and_verification(mock_treeship):
+    # Mock proof generation
+    mock_proof = {'proof_id': 'proof_123', 'status': 'success'}
+    mock_treeship.proofs.generate.return_value = mock_proof
+    
+    # Mock verification
+    mock_verification = {'is_valid': True, 'assertions': {'test': True}}
+    mock_treeship.proofs.verify.return_value = mock_verification
+    
+    # Generate proof
+    proof = await mock_treeship.proofs.generate(
+        proof_type='performance',
+        public_inputs={'test': 'data'},
+        assertions=['test_assertion']
+    )
+    
+    # Verify proof
+    verification = await mock_treeship.proofs.verify(proof['proof_id'])
+    
+    assert proof['proof_id'] == 'proof_123'
+    assert verification['is_valid'] is True
+```
+</CodeGroup>
+
+### Integration Testing
+
+<CodeGroup>
+```javascript JavaScript
+// Integration test with real API
+describe('Treeship Integration Tests', () => {
+  let treeship;
+  const createdResources = [];
+  
+  beforeAll(() => {
+    treeship = new Treeship({
+      apiKey: process.env.TREESHIP_TEST_API_KEY,
+      environment: 'sandbox'
+    });
+  });
+  
+  afterAll(async () => {
+    // Cleanup created resources
+    for (const resource of createdResources) {
+      try {
+        if (resource.type === 'agent') {
+          await treeship.agents.delete(resource.id);
+        }
+      } catch (error) {
+        console.warn(`Failed to cleanup ${resource.type} ${resource.id}:`, error);
+      }
+    }
+  });
+  
+  test('end-to-end agent verification workflow', async () => {
+    // Create agent
+    const agent = await treeship.agents.create({
+      name: 'IntegrationTestAgent',
+      capabilities: ['test-capability'],
+      compliance: { frameworks: ['TEST'] }
+    });
+    
+    createdResources.push({ type: 'agent', id: agent.id });
+    
+    // Generate proof
+    const proof = await treeship.proofs.generate({
+      proofType: 'capability',
+      publicInputs: { agentId: agent.id },
+      privateInputs: { testData: [1, 2, 3] },
+      assertions: ['agent_exists']
+    });
+    
+    // Verify proof
+    const verification = await treeship.proofs.verify(proof.proofId);
+    expect(verification.isValid).toBe(true);
+    
+    // Create attestation
+    const attestation = await treeship.attestations.create({
+      type: 'capability',
+      subject: { id: agent.id, type: 'agent' },
+      claims: [{ property: 'test_capability', value: true }],
+      evidence: { proofs: [proof.proofId] }
+    });
+    
+    // Verify attestation
+    const attVerification = await treeship.attestations.verify(
+      attestation.attestationId
+    );
+    expect(attVerification.isValid).toBe(true);
+  }, 30000); // 30 second timeout
+});
+```
+
+```python Python
+import pytest
+import asyncio
+from treeship import AsyncTreeship
+
+class TestTreeshipIntegration:
+    @classmethod
+    def setup_class(cls):
+        cls.treeship = AsyncTreeship(
+            api_key=os.getenv("TREESHIP_TEST_API_KEY"),
+            environment="sandbox"
+        )
+        cls.created_resources = []
+    
+    @classmethod
+    async def teardown_class(cls):
+        # Cleanup created resources
+        for resource in cls.created_resources:
+            try:
+                if resource['type'] == 'agent':
+                    await cls.treeship.agents.delete(resource['id'])
+            except Exception as e:
+                print(f"Failed to cleanup {resource['type']} {resource['id']}: {e}")
+        
+        await cls.treeship.close()
+    
+    @pytest.mark.asyncio
+    async def test_end_to_end_workflow(self):
+        # Create agent
+        agent = await self.treeship.agents.create(
+            name='IntegrationTestAgent',
+            capabilities=['test-capability'],
+            compliance={'frameworks': ['TEST']}
+        )
+        
+        self.created_resources.append({'type': 'agent', 'id': agent.id})
+        
+        # Generate proof
+        proof = await self.treeship.proofs.generate(
+            proof_type='capability',
+            public_inputs={'agent_id': agent.id},
+            private_inputs={'test_data': [1, 2, 3]},
+            assertions=['agent_exists']
+        )
+        
+        # Verify proof
+        verification = await self.treeship.proofs.verify(proof.proof_id)
+        assert verification.is_valid
+        
+        # Create attestation
+        attestation = await self.treeship.attestations.create(
+            type='capability',
+            subject={'id': agent.id, 'type': 'agent'},
+            claims=[{'property': 'test_capability', 'value': True}],
+            evidence={'proofs': [proof.proof_id]}
+        )
+        
+        # Verify attestation
+        att_verification = await self.treeship.attestations.verify(
+            attestation.attestation_id
+        )
+        assert att_verification.is_valid
+```
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="API Reference" icon="book" href="/api-reference">
+    Complete API documentation
+  </Card>
+  <Card title="ZK Introduction" icon="lock" href="/zk/introduction">
+    Learn Zero-Knowledge fundamentals
+  </Card>
+  <Card title="Commerce Guide" icon="shopping-cart" href="/commerce/overview">
+    Build AI commerce applications
+  </Card>
+</CardGroup>

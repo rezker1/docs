@@ -1,0 +1,195 @@
+---
+title: "ZK Commerce Overview"
+description: "Enable trustless transactions between AI agents with Zero-Knowledge proofs"
+---
+
+## Introduction
+
+ZK Commerce represents a paradigm shift in how AI agents conduct transactions. By leveraging Zero-Knowledge proofs, agents can engage in commerce while maintaining privacy, ensuring compliance, and building trust without intermediaries.
+
+<Note>
+  ZK Commerce enables AI agents to prove transaction validity without revealing sensitive business logic or private data.
+</Note>
+
+## Why ZK Commerce Matters
+
+Traditional AI agent transactions face several challenges:
+
+- **Trust Issues**: How can you trust an autonomous agent?
+- **Privacy Concerns**: Business logic and data exposure
+- **Compliance Risks**: Regulatory requirements in different jurisdictions
+- **Verification Overhead**: Manual review and approval processes
+
+ZK Commerce solves these through cryptographic guarantees.
+
+## Core Components
+
+<CardGroup cols={2}>
+  <Card title="Payment Proofs" icon="credit-card" href="/commerce/payment-proofs">
+    Verify payments without exposing transaction details
+  </Card>
+  <Card title="Compliance Engine" icon="shield-check" href="/commerce/compliance">
+    Automated regulatory compliance with privacy
+  </Card>
+  <Card title="Smart Escrow" icon="lock" href="/commerce/escrow">
+    Trustless escrow with programmable conditions
+  </Card>
+  <Card title="Reputation System" icon="star" href="/commerce/reputation">
+    Build verifiable reputation without history exposure
+  </Card>
+</CardGroup>
+
+## How It Works
+
+<Steps>
+  <Step title="Agent Registration">
+    AI agents register with cryptographic identities
+    ```javascript
+    const agent = await treeship.commerce.registerAgent({
+      name: "PurchasingAgent",
+      capabilities: ["procurement", "negotiation"],
+      zkWallet: true
+    });
+    ```
+  </Step>
+  
+  <Step title="Transaction Initiation">
+    Agents create privacy-preserving transaction requests
+    ```javascript
+    const transaction = await agent.createTransaction({
+      type: "purchase_order",
+      amount: 10000,
+      currency: "USD",
+      generateProof: true
+    });
+    ```
+  </Step>
+  
+  <Step title="Proof Generation">
+    Zero-Knowledge proofs validate transaction conditions
+    ```javascript
+    const proof = await transaction.generateComplianceProof({
+      regulations: ["GDPR", "SOC2"],
+      constraints: {
+        maxAmount: 50000,
+        allowedVendors: ["verified_list"]
+      }
+    });
+    ```
+  </Step>
+  
+  <Step title="Settlement">
+    Atomic settlement with cryptographic guarantees
+    ```javascript
+    const result = await transaction.settle({
+      proof: proof,
+      escrowConditions: {
+        deliveryConfirmation: true,
+        qualityCheck: true
+      }
+    });
+    ```
+  </Step>
+</Steps>
+
+## Use Cases
+
+### B2B Procurement
+AI agents autonomously purchase supplies while proving:
+- Budget compliance without revealing limits
+- Vendor authorization without exposing vendor lists
+- Quality standards without revealing specifications
+
+### Digital Services
+Automated service provisioning with:
+- Usage-based billing with privacy
+- SLA compliance verification
+- Automated dispute resolution
+
+### Supply Chain
+End-to-end supply chain transactions:
+- Origin verification without route exposure
+- Quality attestations without revealing methods
+- Regulatory compliance across jurisdictions
+
+## Integration Example
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+
+// Initialize ZK Commerce
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY
+});
+
+// Create a commerce-enabled agent
+const procurementAgent = await treeship.commerce.createAgent({
+  name: "SmartProcurement",
+  wallet: {
+    type: "zk-enabled",
+    initialBalance: 100000
+  },
+  compliance: {
+    frameworks: ["SOC2", "ISO27001"],
+    jurisdictions: ["US", "EU"]
+  }
+});
+
+// Execute a compliant transaction
+const purchase = await procurementAgent.purchase({
+  item: "cloud-compute-hours",
+  quantity: 1000,
+  maxPrice: 5000,
+  
+  // Privacy settings
+  privacy: {
+    hideVendor: true,
+    hidePriceDetails: true,
+    generateComplianceProof: true
+  },
+  
+  // Smart contract conditions
+  conditions: {
+    delivery: "within_24_hours",
+    quality: "99.9_uptime",
+    escrow: true
+  }
+});
+
+// Verify without seeing details
+console.log("Transaction verified:", purchase.proof.isValid);
+console.log("Compliance met:", purchase.compliance.passed);
+```
+
+## Performance Metrics
+
+<AccordionGroup>
+  <Accordion title="Transaction Speed">
+    - **Proof Generation**: < 100ms
+    - **Verification**: < 10ms
+    - **Settlement**: Near instant with atomic swaps
+  </Accordion>
+  
+  <Accordion title="Privacy Guarantees">
+    - **Zero-Knowledge**: No transaction details exposed
+    - **Selective Disclosure**: Reveal only what's required
+    - **Forward Secrecy**: Past transactions remain private
+  </Accordion>
+  
+  <Accordion title="Scalability">
+    - **Throughput**: 10,000+ TPS
+    - **Proof Size**: ~200 bytes (zk-SNARK)
+    - **Network Effect**: Performance improves with adoption
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Payment Proofs" icon="receipt" href="/commerce/payment-proofs">
+    Deep dive into payment proof generation
+  </Card>
+  <Card title="Compliance Guide" icon="balance-scale" href="/commerce/compliance">
+    Implement regulatory compliance
+  </Card>
+</CardGroup>

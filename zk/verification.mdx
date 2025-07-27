@@ -1,0 +1,493 @@
+---
+title: "Zero-Knowledge Verification"
+description: "Verify proofs and attestations without compromising privacy or revealing sensitive data"
+---
+
+## Overview
+
+Zero-Knowledge verification enables you to cryptographically verify claims about AI agents without accessing the underlying private data. This maintains privacy while ensuring trust and compliance.
+
+<Info>
+  Verify anything about an agent - performance, capabilities, compliance - without seeing their private data.
+</Info>
+
+## Verification Types
+
+<Tabs>
+  <Tab title="Proof Verification">
+    Verify Zero-Knowledge proofs directly
+  </Tab>
+  <Tab title="Attestation Verification">
+    Verify signed attestations with embedded proofs
+  </Tab>
+  <Tab title="Chain Verification">
+    Verify complex proof chains and dependencies
+  </Tab>
+  <Tab title="Batch Verification">
+    Efficiently verify multiple proofs at once
+  </Tab>
+</Tabs>
+
+## Basic Proof Verification
+
+### Verify a ZK Proof
+
+```javascript
+import { Treeship } from '@treeship/sdk';
+
+const treeship = new Treeship({
+  apiKey: process.env.TREESHIP_API_KEY
+});
+
+// Verify a proof by ID
+const verification = await treeship.proofs.verify('proof_abc123');
+
+console.log('Proof valid:', verification.isValid);
+console.log('Assertions passed:', verification.assertions);
+console.log('Verification time:', verification.verificationTime);
+
+// Get detailed verification results
+if (verification.isValid) {
+  console.log('Public inputs:', verification.publicInputs);
+  console.log('Proof type:', verification.proofType);
+  console.log('Circuit hash:', verification.circuitHash);
+} else {
+  console.log('Verification failed:', verification.failureReason);
+}
+```
+
+### Verify with Custom Parameters
+
+```javascript
+// Verify with specific verification parameters
+const customVerification = await treeship.proofs.verify('proof_abc123', {
+  // Check proof hasn't expired
+  checkExpiry: true,
+  
+  // Verify against specific circuit
+  expectedCircuitHash: '0x7d8f9e8a...',
+  
+  // Include performance metrics
+  includeMetrics: true,
+  
+  // Verify proof chain
+  verifyDependencies: true
+});
+```
+
+## Attestation Verification
+
+### Basic Attestation Verification
+
+```javascript
+// Verify an attestation
+const attestationVerification = await treeship.attestations.verify('attest_xyz789');
+
+console.log('Attestation valid:', attestationVerification.isValid);
+console.log('Claims verified:', attestationVerification.claims);
+console.log('Issuer trusted:', attestationVerification.issuer.verified);
+console.log('Not revoked:', !attestationVerification.isRevoked);
+```
+
+### Selective Disclosure Verification
+
+```javascript
+// Verify only specific claims while keeping others private
+const selectiveVerification = await treeship.attestations.verify(
+  'attest_xyz789',
+  {
+    revealClaims: ['accuracy', 'uptime'],
+    hideClaims: ['training_data', 'model_weights'],
+    
+    // Still verify hidden claims exist and are valid
+    verifyHiddenClaims: true
+  }
+);
+
+console.log('Revealed claims:', selectiveVerification.revealedClaims);
+console.log('Hidden claims valid:', selectiveVerification.hiddenClaimsValid);
+```
+
+## Advanced Verification
+
+### Batch Verification
+
+Efficiently verify multiple proofs:
+
+```javascript
+// Verify multiple proofs in parallel
+const batchVerification = await treeship.proofs.verifyBatch([
+  'proof_performance_001',
+  'proof_compliance_002', 
+  'proof_capability_003'
+]);
+
+// Check results
+batchVerification.results.forEach((result, index) => {
+  console.log(`Proof ${index}: ${result.isValid ? 'VALID' : 'INVALID'}`);
+  if (!result.isValid) {
+    console.log(`  Failure reason: ${result.failureReason}`);
+  }
+});
+
+console.log('Overall valid:', batchVerification.allValid);
+console.log('Success rate:', batchVerification.successRate);
+```
+
+### Chain Verification
+
+Verify complex proof dependencies:
+
+```javascript
+// Verify a proof chain with dependencies
+const chainVerification = await treeship.proofs.verifyChain({
+  rootProof: 'proof_composite_001',
+  
+  // Verify all dependencies recursively
+  verifyDependencies: true,
+  
+  // Maximum chain depth to prevent infinite loops
+  maxDepth: 10,
+  
+  // Fail if any dependency is invalid
+  strictMode: true
+});
+
+console.log('Chain valid:', chainVerification.isValid);
+console.log('Verified proofs:', chainVerification.verifiedProofs.length);
+console.log('Chain depth:', chainVerification.depth);
+
+// Examine each level
+chainVerification.levels.forEach((level, index) => {
+  console.log(`Level ${index}: ${level.proofs.length} proofs`);
+});
+```
+
+## Real-Time Verification
+
+### Streaming Verification
+
+```javascript
+// Set up real-time proof verification
+const verificationStream = treeship.proofs.createVerificationStream({
+  // Filter criteria
+  proofTypes: ['performance', 'compliance'],
+  minTrustScore: 0.8,
+  
+  // Real-time processing
+  realtime: true
+});
+
+verificationStream.on('proof', async (proof) => {
+  console.log('New proof received:', proof.proofId);
+  
+  const verification = await treeship.proofs.verify(proof.proofId);
+  
+  if (verification.isValid) {
+    console.log('✅ Proof verified successfully');
+    // Process valid proof
+    await processValidProof(proof);
+  } else {
+    console.log('❌ Proof verification failed');
+    // Handle invalid proof
+    await handleInvalidProof(proof, verification.failureReason);
+  }
+});
+```
+
+### Verification Webhooks
+
+```javascript
+// Set up webhooks for verification events
+const webhook = await treeship.verification.createWebhook({
+  url: 'https://your-app.com/webhooks/verification',
+  events: [
+    'proof.verified',
+    'proof.failed',
+    'attestation.verified',
+    'attestation.revoked'
+  ],
+  
+  // Security
+  secret: process.env.WEBHOOK_SECRET
+});
+
+// Handle webhook in your application
+app.post('/webhooks/verification', (req, res) => {
+  const event = req.body;
+  
+  switch (event.type) {
+    case 'proof.verified':
+      console.log('Proof verified:', event.data.proofId);
+      break;
+      
+    case 'proof.failed':
+      console.log('Proof failed:', event.data.proofId);
+      console.log('Reason:', event.data.failureReason);
+      break;
+      
+    case 'attestation.revoked':
+      console.log('Attestation revoked:', event.data.attestationId);
+      // Update local records
+      break;
+  }
+  
+  res.status(200).send('OK');
+});
+```
+
+## Verification Policies
+
+### Custom Verification Logic
+
+```javascript
+// Define custom verification policies
+const verificationPolicy = {
+  // Required proof types
+  requiredProofs: ['identity', 'capability', 'performance'],
+  
+  // Minimum trust levels
+  minTrustScores: {
+    identity: 0.95,
+    capability: 0.90,
+    performance: 0.85
+  },
+  
+  // Maximum proof age
+  maxAge: {
+    identity: '1y',
+    capability: '6m', 
+    performance: '30d'
+  },
+  
+  // Required issuers
+  trustedIssuers: [
+    'certified_testing_lab_001',
+    'government_authority_002'
+  ],
+  
+  // Custom validation rules
+  customRules: [
+    {
+      name: 'performance_threshold',
+      condition: 'accuracy >= 0.95 AND latency <= 100ms'
+    },
+    {
+      name: 'compliance_current',
+      condition: 'gdpr_compliance = true AND sox_compliance = true'
+    }
+  ]
+};
+
+// Apply policy during verification
+const policyVerification = await treeship.verification.verifyWithPolicy(
+  agentId,
+  verificationPolicy
+);
+
+console.log('Policy compliance:', policyVerification.compliant);
+console.log('Failed rules:', policyVerification.failedRules);
+```
+
+## Use Cases
+
+<AccordionGroup>
+  <Accordion title="Pre-Transaction Verification">
+    Verify agent trustworthiness before transactions:
+    ```javascript
+    async function verifyBeforeTransaction(agentId, transactionValue) {
+      // Define verification requirements based on transaction value
+      const requirements = {
+        lowValue: { minTrustScore: 0.7, requiredProofs: ['identity'] },
+        mediumValue: { minTrustScore: 0.8, requiredProofs: ['identity', 'capability'] },
+        highValue: { minTrustScore: 0.95, requiredProofs: ['identity', 'capability', 'performance', 'compliance'] }
+      };
+      
+      const tier = transactionValue < 1000 ? 'lowValue' : 
+                   transactionValue < 10000 ? 'mediumValue' : 'highValue';
+      
+      const verification = await treeship.agents.verify(agentId, {
+        verificationType: 'full',
+        requirements: requirements[tier]
+      });
+      
+      if (!verification.verified) {
+        throw new Error(`Agent verification failed: ${verification.failureReason}`);
+      }
+      
+      return verification;
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Compliance Auditing">
+    Automated compliance verification:
+    ```javascript
+    async function performComplianceAudit(agentIds) {
+      const auditResults = [];
+      
+      for (const agentId of agentIds) {
+        const verification = await treeship.attestations.verify(agentId, {
+          types: ['compliance'],
+          frameworks: ['GDPR', 'SOC2', 'ISO27001'],
+          includeEvidence: false // Privacy-preserving
+        });
+        
+        auditResults.push({
+          agentId,
+          compliant: verification.isValid,
+          frameworks: verification.verifiedFrameworks,
+          lastAudit: verification.lastAuditDate,
+          issues: verification.complianceIssues || []
+        });
+      }
+      
+      return auditResults;
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Marketplace Verification">
+    Verify agents in a marketplace:
+    ```javascript
+    async function searchVerifiedAgents(criteria) {
+      // Search for agents meeting criteria
+      const candidates = await treeship.agents.search(criteria);
+      
+      // Verify each candidate
+      const verifiedAgents = [];
+      
+      for (const agent of candidates) {
+        try {
+          const verification = await treeship.agents.verify(agent.id, {
+            verificationType: 'full',
+            includeMetadata: true
+          });
+          
+          if (verification.verified && verification.trustScore >= criteria.minTrustScore) {
+            verifiedAgents.push({
+              ...agent,
+              verification,
+              trustScore: verification.trustScore
+            });
+          }
+        } catch (error) {
+          console.log(`Verification failed for agent ${agent.id}:`, error.message);
+        }
+      }
+      
+      // Sort by trust score
+      return verifiedAgents.sort((a, b) => b.trustScore - a.trustScore);
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Verification Dashboard
+
+Monitor verification activities:
+
+```javascript
+// Create verification dashboard
+const dashboard = await treeship.verification.createDashboard({
+  metrics: [
+    'verification_rate',
+    'success_rate', 
+    'average_verification_time',
+    'trust_score_distribution'
+  ],
+  
+  // Real-time updates
+  realtime: true,
+  
+  // Time range
+  timeRange: '24h'
+});
+
+// Subscribe to dashboard updates
+dashboard.on('metrics_update', (metrics) => {
+  console.log('Verification Rate:', metrics.verification_rate);
+  console.log('Success Rate:', metrics.success_rate);
+  console.log('Avg Time:', metrics.average_verification_time);
+});
+
+// Get detailed analytics
+const analytics = await dashboard.getAnalytics({
+  groupBy: 'hour',
+  metrics: ['success_rate', 'failure_reasons']
+});
+```
+
+## Best Practices
+
+<Warning>
+  Always verify proofs from untrusted sources. Never skip verification for critical operations.
+</Warning>
+
+1. **Verify Early**: Check proofs before processing requests
+2. **Cache Results**: Cache verification results to improve performance
+3. **Check Expiry**: Always verify proof expiration times
+4. **Validate Issuers**: Ensure proof issuers are trusted
+5. **Monitor Revocation**: Check revocation status for critical proofs
+6. **Use Policies**: Implement verification policies for consistency
+
+## Performance Optimization
+
+### Verification Caching
+
+```javascript
+// Implement verification caching
+const verificationCache = new Map();
+
+async function verifyWithCache(proofId, ttl = 3600000) { // 1 hour TTL
+  const cacheKey = `verification:${proofId}`;
+  
+  // Check cache first
+  const cached = verificationCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < ttl) {
+    return cached.result;
+  }
+  
+  // Perform verification
+  const result = await treeship.proofs.verify(proofId);
+  
+  // Cache result
+  verificationCache.set(cacheKey, {
+    result,
+    timestamp: Date.now()
+  });
+  
+  return result;
+}
+```
+
+### Parallel Verification
+
+```javascript
+// Verify multiple proofs in parallel
+async function verifyMultipleProofs(proofIds) {
+  const verificationPromises = proofIds.map(proofId => 
+    treeship.proofs.verify(proofId)
+  );
+  
+  const results = await Promise.allSettled(verificationPromises);
+  
+  return results.map((result, index) => ({
+    proofId: proofIds[index],
+    status: result.status,
+    verification: result.status === 'fulfilled' ? result.value : null,
+    error: result.status === 'rejected' ? result.reason : null
+  }));
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Verify Proofs" icon="check-circle" href="/api-reference/proofs/verify">
+    API reference for proof verification
+  </Card>
+  <Card title="Create Attestations" icon="certificate" href="/api-reference/attestations/create">
+    Learn how to create verifiable attestations
+  </Card>
+</CardGroup>
